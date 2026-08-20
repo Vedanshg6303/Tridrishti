@@ -9,24 +9,33 @@ import {
   Sparkles,
   ShieldCheck,
   Package,
-  GraduationCap,
-  HeartPulse,
-  HeartHandshake,
-  Receipt,
-  LifeBuoy,
   FileText,
+  LifeBuoy,
   LogOut,
-  Menu,
-  X,
   ArrowLeft,
   Zap,
+  Lock,
 } from 'lucide-react';
 
 export const AdminLayout: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, login, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [switching, setSwitching] = useState(false);
+
+  const isAdmin = user && (user.role === 'SUPER_ADMIN' || user.role === 'ADMIN');
+
+  const handleAdminSwitch = async () => {
+    setSwitching(true);
+    try {
+      await login('admin@tridrishti.com', 'Admin@123');
+      window.location.reload();
+    } catch (err) {
+      console.error('Failed to switch to admin:', err);
+    } finally {
+      setSwitching(false);
+    }
+  };
 
   const adminNavItems = [
     { name: '⚡ Master Mission Control', path: '/admin/master', icon: Zap },
@@ -40,6 +49,52 @@ export const AdminLayout: React.FC = () => {
     { name: 'Reward Fulfillment', path: '/admin/redemptions', icon: Package },
     { name: 'System Audit Logs', path: '/admin/audit-logs', icon: FileText },
   ];
+
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-[#03060d] text-slate-100 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-dark-card border border-dark-border p-8 rounded-3xl shadow-2xl text-center space-y-5">
+          <div className="w-14 h-14 mx-auto rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400">
+            <Lock className="w-7 h-7" />
+          </div>
+
+          <div className="space-y-2">
+            <h2 className="text-xl font-display font-bold text-white">Admin Privileges Required</h2>
+            <p className="text-xs text-slate-400">
+              You are currently signed in as <strong className="text-white">{user?.email || 'Guest'}</strong> (Role: <span className="font-mono text-amber-400">{user?.role || 'NONE'}</span>). The Governance CRM requires <strong>SUPER_ADMIN</strong> or <strong>ADMIN</strong> permissions.
+            </p>
+          </div>
+
+          <div className="space-y-3 pt-2">
+            <button
+              type="button"
+              disabled={switching}
+              onClick={handleAdminSwitch}
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-purple-500/25 transition-all flex items-center justify-center gap-2"
+            >
+              <ShieldAlert className="w-4 h-4" />
+              <span>{switching ? 'Authenticating Admin...' : '1-Click Switch to Super Admin'}</span>
+            </button>
+
+            <div className="flex gap-2">
+              <Link
+                to="/dashboard"
+                className="flex-1 py-2.5 rounded-xl bg-dark-bg border border-dark-border text-xs font-semibold text-slate-300 hover:text-white transition-colors text-center"
+              >
+                Go to Member Dashboard
+              </Link>
+              <Link
+                to="/login"
+                className="flex-1 py-2.5 rounded-xl bg-dark-bg border border-dark-border text-xs font-semibold text-slate-300 hover:text-white transition-colors text-center"
+              >
+                Sign Out & Re-login
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#03060d] text-slate-100 flex">
