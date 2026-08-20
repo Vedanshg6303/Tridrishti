@@ -7,6 +7,10 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>;
   register: (name: string, email: string, password: string, phone?: string, referralCode?: string) => Promise<{ success: boolean; message?: string }>;
+  sendOTP: (target: string, type?: 'SIGNUP' | 'LOGIN') => Promise<{ success: boolean; message?: string; devOtpPreview?: string }>;
+  verifyOTP: (target: string, otp: string, type?: 'SIGNUP' | 'LOGIN') => Promise<{ success: boolean; message?: string }>;
+  registerWithOTP: (name: string, email: string, password: string, phone: string, referralCode: string, otp: string) => Promise<{ success: boolean; message?: string }>;
+  loginWithOTP: (target: string, otp: string) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
   refreshUser: () => Promise<void>;
   updateUser: (updatedUser: Partial<User>) => void;
@@ -84,6 +88,89 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const sendOTP = async (target: string, type: 'SIGNUP' | 'LOGIN' = 'SIGNUP') => {
+    try {
+      const res = await api.post('/auth/send-otp', { target, type });
+      return {
+        success: res.data.success,
+        message: res.data.message,
+        devOtpPreview: res.data.devOtpPreview,
+      };
+    } catch (err: any) {
+      return {
+        success: false,
+        message: err.response?.data?.message || err.message || 'Failed to send OTP code',
+      };
+    }
+  };
+
+  const verifyOTP = async (target: string, otp: string, type: 'SIGNUP' | 'LOGIN' = 'SIGNUP') => {
+    try {
+      const res = await api.post('/auth/verify-otp', { target, otp, type });
+      return {
+        success: res.data.success,
+        message: res.data.message,
+      };
+    } catch (err: any) {
+      return {
+        success: false,
+        message: err.response?.data?.message || err.message || 'Invalid or expired OTP',
+      };
+    }
+  };
+
+  const registerWithOTP = async (
+    name: string,
+    email: string,
+    password: string,
+    phone: string,
+    referralCode: string,
+    otp: string
+  ) => {
+    try {
+      const res = await api.post('/auth/register-otp', {
+        name,
+        email,
+        password,
+        phone,
+        referralCode,
+        otp,
+      });
+      if (res.data.success) {
+        const { user, tokens } = res.data;
+        localStorage.setItem('tridrishti_token', tokens.accessToken);
+        localStorage.setItem('tridrishti_user', JSON.stringify(user));
+        setUser(user);
+        return { success: true, message: res.data.message };
+      }
+      return { success: false, message: res.data.message || 'Registration failed' };
+    } catch (err: any) {
+      return {
+        success: false,
+        message: err.response?.data?.message || err.message || 'Registration failed',
+      };
+    }
+  };
+
+  const loginWithOTP = async (target: string, otp: string) => {
+    try {
+      const res = await api.post('/auth/login-otp', { target, otp });
+      if (res.data.success) {
+        const { user, tokens } = res.data;
+        localStorage.setItem('tridrishti_token', tokens.accessToken);
+        localStorage.setItem('tridrishti_user', JSON.stringify(user));
+        setUser(user);
+        return { success: true, message: res.data.message };
+      }
+      return { success: false, message: res.data.message || 'OTP Login failed' };
+    } catch (err: any) {
+      return {
+        success: false,
+        message: err.response?.data?.message || err.message || 'OTP Login failed',
+      };
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('tridrishti_token');
     localStorage.removeItem('tridrishti_user');
@@ -99,7 +186,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, refreshUser, updateUser }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        login,
+        register,
+        sendOTP,
+        verifyOTP,
+        registerWithOTP,
+        loginWithOTP,
+        logout,
+        refreshUser,
+        updateUser,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

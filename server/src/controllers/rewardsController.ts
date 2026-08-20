@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import { RewardProduct } from '../models/RewardProduct';
 import { RewardRedemption } from '../models/RewardRedemption';
+import { User } from '../models/User';
 import { PointsEngine } from '../services/PointsEngine';
 import { AuthenticatedRequest } from '../middleware/authJwt';
 import { PointTransactionType } from '../constants';
@@ -44,43 +45,101 @@ export const redeemRewardProduct = async (req: AuthenticatedRequest, res: Respon
     }
 
     const { productId, shippingAddress } = req.body;
-    let product = inMemoryStore.products.find((p) => p._id === productId);
+
+    if (!shippingAddress || !shippingAddress.fullName || !shippingAddress.pincode || !shippingAddress.phone) {
+      res.status(400).json({
+        success: false,
+        message: 'Complete shipping address including Name, Phone, and PIN code is required',
+      });
+      return;
+    }
+
+    let product: any;
+    let userBalance = 0;
+
+    if (mongoose.connection.readyState === 1) {
+      product = await RewardProduct.findById(productId);
+      const user = await User.findById(req.user._id);
+      if (!user) {
+        res.status(404).json({ success: false, message: 'User not found' });
+        return;
+      }
+      userBalance = user.pointsBalance || 0;
+    } else {
+      product = inMemoryStore.products.find((p) => p._id === productId) || inMemoryStore.products[0];
+      const memUser = inMemoryStore.users.find((u) => u._id === req.user._id);
+      userBalance = memUser ? memUser.pointsBalance || 0 : 0;
+    }
+
     if (!product) {
-      product = inMemoryStore.products[0];
+      res.status(404).json({ success: false, message: 'Reward product not found' });
+      return;
+    }
+
+    if (userBalance < product.pointsRequired) {
+      res.status(400).json({
+        success: false,
+        message: `Insufficient TRI Points. You need ${product.pointsRequired} TRI Coins but currently have ${userBalance} TRI Coins.`,
+      });
+      return;
     }
 
     const redemptionId = `RDM-TRI-${Date.now().toString(36).toUpperCase()}`;
+    let newBalance = userBalance - product.pointsRequired;
+    let redemption: any;
 
-    // Deduct user points
-    const memUser = inMemoryStore.users.find((u) => u._id === req.user._id);
-    if (memUser) {
-      memUser.pointsBalance = Math.max(0, (memUser.pointsBalance || 0) - product.pointsRequired);
-      memUser.lifetimePointsUsed = (memUser.lifetimePointsUsed || 0) + product.pointsRequired;
+    if (mongoose.connection.readyState === 1) {
+      // Deduct points & update user
+      await User.findByIdAndUpdate(req.user._id, {
+        $inc: { pointsBalance: -product.pointsRequired, lifetimePointsUsed: product.pointsRequired },
+      });
+
+      redemption = await RewardRedemption.create({
+        redemptionId,
+        userId: req.user._id,
+        productId: product._id,
+        productSnapshot: {
+          title: product.title,
+          category: product.category,
+          pointsRequired: product.pointsRequired,
+          imageUrl: product.imageUrl,
+        },
+        pointsSpent: product.pointsRequired,
+        shippingAddress,
+        status: 'PENDING',
+      });
+    } else {
+      const memUser = inMemoryStore.users.find((u) => u._id === req.user._id);
+      if (memUser) {
+        memUser.pointsBalance = newBalance;
+        memUser.lifetimePointsUsed = (memUser.lifetimePointsUsed || 0) + product.pointsRequired;
+      }
+
+      redemption = {
+        _id: `redemption_${Date.now()}`,
+        redemptionId,
+        userId: req.user._id,
+        productId: product._id,
+        productSnapshot: {
+          title: product.title,
+          category: product.category,
+          pointsRequired: product.pointsRequired,
+          imageUrl: product.imageUrl,
+        },
+        pointsSpent: product.pointsRequired,
+        shippingAddress,
+        status: 'PENDING',
+        createdAt: new Date().toISOString(),
+      };
+
+      inMemoryStore.redemptions.unshift(redemption);
     }
-
-    const redemption = {
-      _id: `redemption_${Date.now()}`,
-      redemptionId,
-      userId: req.user._id,
-      productId: product._id,
-      productSnapshot: {
-        title: product.title,
-        category: product.category,
-        pointsRequired: product.pointsRequired,
-        imageUrl: product.imageUrl,
-      },
-      pointsSpent: product.pointsRequired,
-      shippingAddress,
-      status: 'PENDING',
-      createdAt: new Date().toISOString(),
-    };
-
-    inMemoryStore.redemptions.push(redemption);
 
     res.status(201).json({
       success: true,
-      message: 'Reward redeemed successfully! Your order has been queued for fulfillment.',
+      message: `🎉 Success! Redeemed "${product.title}" for ${product.pointsRequired} TRI Coins. Your order is queued for fulfillment.`,
       redemption,
+      newPointsBalance: newBalance,
     });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });

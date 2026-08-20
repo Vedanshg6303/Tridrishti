@@ -15,6 +15,7 @@ export interface InMemoryState {
   redemptions: any[];
   auditLogs: any[];
   contactMessages: any[];
+  otps: any[];
 }
 
 export const inMemoryStore: InMemoryState = {
@@ -31,6 +32,7 @@ export const inMemoryStore: InMemoryState = {
   redemptions: [],
   auditLogs: [],
   contactMessages: [],
+  otps: [],
 };
 
 export const initInMemoryStore = async () => {

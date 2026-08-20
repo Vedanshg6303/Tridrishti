@@ -150,7 +150,12 @@ export const updateRule = async (req: AuthenticatedRequest, res: Response): Prom
 
 export const getAllClaims = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
-    res.status(200).json({ success: true, claims: inMemoryStore.claims });
+    if (mongoose.connection.readyState === 1) {
+      const claims = await BenefitClaim.find().sort({ createdAt: -1 });
+      res.status(200).json({ success: true, claims });
+    } else {
+      res.status(200).json({ success: true, claims: inMemoryStore.claims });
+    }
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -159,14 +164,52 @@ export const getAllClaims = async (req: AuthenticatedRequest, res: Response): Pr
 export const updateClaimStatus = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const { claimId } = req.params;
-    const { status } = req.body;
+    const { status, reviewNotes, rejectionReason, payoutAmount, payoutTxnId } = req.body;
 
-    const claim = inMemoryStore.claims.find((c) => c.claimId === claimId);
-    if (claim) {
-      claim.status = status;
+    let updatedClaim: any;
+
+    if (mongoose.connection.readyState === 1) {
+      const updateData: any = { status };
+      if (reviewNotes) updateData.reviewNotes = reviewNotes;
+      if (rejectionReason) updateData.rejectionReason = rejectionReason;
+      if (payoutAmount) updateData.payoutAmount = payoutAmount;
+      if (payoutTxnId) updateData.payoutTxnId = payoutTxnId;
+      updateData.reviewedAt = new Date();
+      updateData.reviewedBy = req.user?.name || 'Administrator';
+
+      updatedClaim = await BenefitClaim.findOneAndUpdate({ claimId }, updateData, { new: true });
+    } else {
+      const claim = inMemoryStore.claims.find((c) => c.claimId === claimId || c._id === claimId);
+      if (claim) {
+        claim.status = status;
+        if (reviewNotes) claim.reviewNotes = reviewNotes;
+        if (rejectionReason) claim.rejectionReason = rejectionReason;
+        if (payoutAmount) claim.payoutAmount = payoutAmount;
+        if (payoutTxnId) claim.payoutTxnId = payoutTxnId;
+        claim.reviewedAt = new Date().toISOString();
+        claim.reviewedBy = req.user?.name || 'Administrator';
+        updatedClaim = claim;
+      }
     }
 
-    res.status(200).json({ success: true, message: 'Claim updated successfully', claim });
+    // Add Audit Log
+    const auditEntry = {
+      _id: `log_${Date.now()}`,
+      action: `CLAIM_${status}`,
+      performedByName: req.user?.name || 'Tridrishti Platform Admin',
+      performedByRole: req.user?.role || 'SUPER_ADMIN',
+      targetResource: 'BenefitClaim',
+      targetId: claimId,
+      details: `Claim ${claimId} marked as ${status}. Notes: ${reviewNotes || rejectionReason || 'N/A'}`,
+      timestamp: new Date().toISOString(),
+    };
+    inMemoryStore.auditLogs.unshift(auditEntry);
+
+    res.status(200).json({
+      success: true,
+      message: `Claim status updated to ${status} successfully`,
+      claim: updatedClaim,
+    });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -174,7 +217,12 @@ export const updateClaimStatus = async (req: AuthenticatedRequest, res: Response
 
 export const getAllRedemptions = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
-    res.status(200).json({ success: true, redemptions: inMemoryStore.redemptions });
+    if (mongoose.connection.readyState === 1) {
+      const redemptions = await RewardRedemption.find().sort({ createdAt: -1 });
+      res.status(200).json({ success: true, redemptions });
+    } else {
+      res.status(200).json({ success: true, redemptions: inMemoryStore.redemptions });
+    }
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -183,16 +231,71 @@ export const getAllRedemptions = async (req: AuthenticatedRequest, res: Response
 export const updateRedemptionStatus = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const { redemptionId } = req.params;
-    const { status, trackingNumber, courierPartner } = req.body;
+    const { status, trackingNumber, courierPartner, notes, rejectionReason } = req.body;
 
-    const r = inMemoryStore.redemptions.find((red) => red.redemptionId === redemptionId);
-    if (r) {
-      r.status = status;
-      if (trackingNumber) r.trackingNumber = trackingNumber;
-      if (courierPartner) r.courierPartner = courierPartner;
+    let updatedRedemption: any;
+
+    if (mongoose.connection.readyState === 1) {
+      const updateData: any = { status };
+      if (trackingNumber) updateData.trackingNumber = trackingNumber;
+      if (courierPartner) updateData.courierPartner = courierPartner;
+      if (notes) updateData.notes = notes;
+      if (rejectionReason) updateData.rejectionReason = rejectionReason;
+      updateData.updatedAt = new Date();
+
+      updatedRedemption = await RewardRedemption.findOneAndUpdate(
+        { redemptionId },
+        updateData,
+        { new: true }
+      );
+
+      // If rejected, refund points to user
+      if (status === 'REJECTED' && updatedRedemption) {
+        await User.findByIdAndUpdate(updatedRedemption.userId, {
+          $inc: { pointsBalance: updatedRedemption.pointsSpent },
+        });
+      }
+    } else {
+      const r = inMemoryStore.redemptions.find(
+        (red) => red.redemptionId === redemptionId || red._id === redemptionId
+      );
+      if (r) {
+        r.status = status;
+        if (trackingNumber) r.trackingNumber = trackingNumber;
+        if (courierPartner) r.courierPartner = courierPartner;
+        if (notes) r.notes = notes;
+        if (rejectionReason) r.rejectionReason = rejectionReason;
+        r.updatedAt = new Date().toISOString();
+        updatedRedemption = r;
+
+        // If rejected, refund points
+        if (status === 'REJECTED') {
+          const u = inMemoryStore.users.find((user) => user._id === r.userId);
+          if (u) {
+            u.pointsBalance = (u.pointsBalance || 0) + (r.pointsSpent || 0);
+          }
+        }
+      }
     }
 
-    res.status(200).json({ success: true, message: 'Redemption order updated', redemption: r });
+    // Add Audit Log
+    const auditEntry = {
+      _id: `log_${Date.now()}`,
+      action: `REDEMPTION_${status}`,
+      performedByName: req.user?.name || 'Tridrishti Platform Admin',
+      performedByRole: req.user?.role || 'SUPER_ADMIN',
+      targetResource: 'RewardRedemption',
+      targetId: redemptionId,
+      details: `Redemption ${redemptionId} updated to ${status}. Courier: ${courierPartner || 'N/A'}, Tracking: ${trackingNumber || 'N/A'}`,
+      timestamp: new Date().toISOString(),
+    };
+    inMemoryStore.auditLogs.unshift(auditEntry);
+
+    res.status(200).json({
+      success: true,
+      message: `Redemption order updated to ${status} successfully`,
+      redemption: updatedRedemption,
+    });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
