@@ -1,10 +1,13 @@
 import axios from 'axios';
 
 const getBaseUrl = () => {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
   if (typeof window !== 'undefined') {
     const host = window.location.hostname;
     // If on localhost, 127.0.0.1, or local LAN IP (e.g. phone on same Wi-Fi)
-    if (host === 'localhost' || host === '127.0.0.1' || host.startsWith('192.168.') || host.startsWith('10.') || host.startsWith('172.')) {
+    if (host === 'localhost' || host === '127.0.0.1' || host.startsWith('192.168.') || host.startsWith('10.') || host.startsWith('172.') || host === '50.0.0.101') {
       return `http://${host}:5001/api`;
     }
   }
