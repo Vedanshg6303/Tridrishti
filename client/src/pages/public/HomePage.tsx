@@ -26,10 +26,10 @@ export const HomePage: React.FC = () => {
   const [showIntro, setShowIntro] = useState(true);
 
   const stats = [
-    { label: 'Active Members', value: '10,400+', icon: Users, color: 'text-brand-400' },
-    { label: 'TRI Points Issued', value: '1.8M+', icon: Sparkles, color: 'text-amber-400' },
-    { label: 'Curated Benefits', value: '50+', icon: Shield, color: 'text-cyan-400' },
-    { label: 'Impact Initiatives', value: '24 Drives', icon: HeartHandshake, color: 'text-emerald-400' },
+    { label: 'One-Time Entry Activation', value: '₹100', icon: Zap, color: 'text-brand-400' },
+    { label: 'Referral Bonus', value: '10 TRI Coins', icon: Sparkles, color: 'text-amber-400' },
+    { label: 'Career Progression', value: '5 Tier Levels', icon: Shield, color: 'text-cyan-400' },
+    { label: 'Community Welfare', value: '100% Free Shipping', icon: Gift, color: 'text-emerald-400' },
   ];
 
   const highlights = [

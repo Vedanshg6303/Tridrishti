@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getMasterState, executeQuickAction } from '../controllers/ownerController';
+import { getMasterState, executeQuickAction, executeDatabaseStudio } from '../controllers/ownerController';
 import { authenticateJwt } from '../middleware/authJwt';
 import { requireRole } from '../middleware/roleGuard';
 import { UserRole } from '../constants';
@@ -20,6 +20,14 @@ router.post(
   authenticateJwt,
   requireRole(UserRole.SUPER_ADMIN, UserRole.ADMIN),
   executeQuickAction
+);
+
+// Built-in Database Studio Engine (Query/Insert/Update/Delete across all collections)
+router.post(
+  '/database-studio',
+  authenticateJwt,
+  requireRole(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+  executeDatabaseStudio
 );
 
 export default router;

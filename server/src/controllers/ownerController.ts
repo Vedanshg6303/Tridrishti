@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../middleware/authJwt';
-import { inMemoryStore } from '../config/memoryStore';
+import { inMemoryStore, initInMemoryStore } from '../config/memoryStore';
 import { PointsEngine } from '../services/PointsEngine';
 import { PointTransactionType, UserRole, KYCStatus } from '../constants';
 
@@ -16,9 +16,9 @@ export const getMasterState = async (req: AuthenticatedRequest, res: Response): 
     const totalLifetimeEarned = inMemoryStore.users.reduce((sum, u) => sum + (u.lifetimePointsEarned || 0), 0);
     const totalRedeemedPoints = inMemoryStore.users.reduce((sum, u) => sum + (u.lifetimePointsUsed || 0), 0);
     
-    // Revenue based on ₹100 entry activations + upgrades
-    const entryActivationsCount = inMemoryStore.users.length;
-    const grossRevenue = entryActivationsCount * 100 + 1500;
+    // Real revenue based on non-admin members' ₹100 entry activations
+    const entryActivationsCount = inMemoryStore.users.filter(u => u.role !== UserRole.SUPER_ADMIN).length;
+    const grossRevenue = entryActivationsCount * 100;
 
     res.status(200).json({
       success: true,
@@ -31,7 +31,7 @@ export const getMasterState = async (req: AuthenticatedRequest, res: Response): 
         totalLifetimeEarned,
         totalRedeemedPoints,
         pendingKycCount: inMemoryStore.users.filter((u) => u.kycStatus === 'PENDING').length,
-        pendingClaimsCount: inMemoryStore.claims.filter((c) => c.status === 'SUBMITTED').length,
+        pendingClaimsCount: inMemoryStore.claims.filter((c) => c.status === 'PENDING' || c.status === 'SUBMITTED').length,
         pendingRedemptionsCount: inMemoryStore.redemptions.filter((r) => r.status === 'PENDING').length,
         unreadInquiriesCount: inMemoryStore.contactMessages.filter((m) => m.status === 'UNREAD').length,
       },
@@ -39,10 +39,12 @@ export const getMasterState = async (req: AuthenticatedRequest, res: Response): 
       rules: inMemoryStore.rules,
       plans: inMemoryStore.plans,
       products: inMemoryStore.products,
+      benefits: inMemoryStore.benefits,
       claims: inMemoryStore.claims,
       redemptions: inMemoryStore.redemptions,
       contactMessages: inMemoryStore.contactMessages,
       auditLogs: inMemoryStore.auditLogs,
+      ledger: inMemoryStore.ledger,
     });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
@@ -50,13 +52,7 @@ export const getMasterState = async (req: AuthenticatedRequest, res: Response): 
 };
 
 /**
- * Quick Action: Execute fast owner/developer interventions:
- * - 'ADJUST_POINTS': Instant point credit/debit
- * - 'SET_LEVEL': Direct level promotion/demotion
- * - 'TOGGLE_SUSPEND': 1-click user freeze/unfreeze
- * - 'SET_KYC': 1-click KYC verify/reject
- * - 'UPDATE_RULE': 1-click rule value change (e.g. entry fee or referral payout)
- * - 'SIMULATE_REFERRAL': 1-click test simulation of new ₹100 user & 10 coins attribution
+ * Execute fast owner/developer interventions
  */
 export const executeQuickAction = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
@@ -120,8 +116,14 @@ export const executeQuickAction = async (req: AuthenticatedRequest, res: Respons
         return;
       }
 
+      case 'RESET_DATA_TO_ZERO': {
+        await initInMemoryStore();
+        res.status(200).json({ success: true, message: 'All dummy platform data wiped and reset to zero state successfully!' });
+        return;
+      }
+
       case 'SIMULATE_REFERRAL': {
-        const sponsor = inMemoryStore.users.find((u) => u._id === targetUserId) || inMemoryStore.users[1];
+        const sponsor = inMemoryStore.users.find((u) => u._id === targetUserId) || inMemoryStore.users[0];
         const newUserName = payload.name || `Member_${Math.random().toString(36).substring(2, 6)}`;
         const newUserEmail = payload.email || `${newUserName.toLowerCase()}@example.com`;
 
@@ -161,6 +163,88 @@ export const executeQuickAction = async (req: AuthenticatedRequest, res: Respons
 
       default:
         res.status(400).json({ success: false, message: 'Unknown quick action' });
+    }
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * Raw Database Studio CRUD Endpoint for Developers
+ */
+export const executeDatabaseStudio = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const { collection, operation, filter, doc } = req.body;
+
+    const allowedCollections: Record<string, keyof typeof inMemoryStore> = {
+      users: 'users',
+      rules: 'rules',
+      plans: 'plans',
+      products: 'products',
+      benefits: 'benefits',
+      claims: 'claims',
+      redemptions: 'redemptions',
+      ledger: 'ledger',
+      tickets: 'tickets',
+      contactMessages: 'contactMessages',
+      auditLogs: 'auditLogs',
+    };
+
+    const key = allowedCollections[collection];
+    if (!key) {
+      res.status(400).json({ success: false, message: `Unknown or unindexed collection: ${collection}` });
+      return;
+    }
+
+    const colArray = inMemoryStore[key] as any[];
+
+    switch (operation) {
+      case 'FIND': {
+        let result = colArray;
+        if (filter && typeof filter === 'object') {
+          result = colArray.filter((item) =>
+            Object.entries(filter).every(([k, v]) => String(item[k]).toLowerCase().includes(String(v).toLowerCase()))
+          );
+        }
+        res.status(200).json({ success: true, count: result.length, data: result });
+        return;
+      }
+
+      case 'INSERT': {
+        const newDoc = {
+          _id: doc._id || `${collection}_${Date.now()}`,
+          ...doc,
+          createdAt: doc.createdAt || new Date().toISOString(),
+        };
+        colArray.push(newDoc);
+        res.status(201).json({ success: true, message: `Inserted 1 document into ${collection}`, doc: newDoc });
+        return;
+      }
+
+      case 'UPDATE': {
+        const idx = colArray.findIndex((item) => item._id === doc._id);
+        if (idx === -1) {
+          res.status(404).json({ success: false, message: `Document with _id ${doc._id} not found in ${collection}` });
+          return;
+        }
+        colArray[idx] = { ...colArray[idx], ...doc, updatedAt: new Date().toISOString() };
+        res.status(200).json({ success: true, message: `Updated document in ${collection}`, doc: colArray[idx] });
+        return;
+      }
+
+      case 'DELETE': {
+        const idx = colArray.findIndex((item) => item._id === filter?._id);
+        if (idx === -1) {
+          res.status(404).json({ success: false, message: `Document with _id ${filter?._id} not found in ${collection}` });
+          return;
+        }
+        const removed = colArray.splice(idx, 1)[0];
+        res.status(200).json({ success: true, message: `Deleted document from ${collection}`, removed });
+        return;
+      }
+
+      default:
+        res.status(400).json({ success: false, message: 'Invalid database operation. Supported: FIND, INSERT, UPDATE, DELETE' });
     }
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
