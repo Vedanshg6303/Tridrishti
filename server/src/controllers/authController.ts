@@ -8,6 +8,7 @@ import { NetworkService } from '../services/NetworkService';
 import { AuthenticatedRequest } from '../middleware/authJwt';
 import { KYCStatus, UserRole, AuditAction } from '../constants';
 import { AuditService } from '../services/AuditService';
+import { EmailService } from '../services/EmailService';
 import { inMemoryStore } from '../config/memoryStore';
 
 const generateTokens = (userId: string, role: string) => {
@@ -337,11 +338,20 @@ export const sendOTP = async (req: Request, res: Response): Promise<void> => {
 
     console.log(`[AUTH OTP Engine] Generated OTP for ${cleanTarget} (${type}): ${otp}`);
 
+    // Dispatch real email if it's an email address
+    let emailDelivered = false;
+    if (cleanTarget.includes('@')) {
+      emailDelivered = await EmailService.sendOtpEmail(cleanTarget, otp, type);
+    }
+
     res.status(200).json({
       success: true,
-      message: `A 6-digit verification code has been sent to ${target}`,
+      message: emailDelivered
+        ? `A 6-digit verification code has been sent directly to ${cleanTarget}`
+        : `A 6-digit verification code has been generated for ${cleanTarget}`,
       target: cleanTarget,
       type,
+      emailDelivered,
       // For immediate ease of local testing & developer experience:
       devOtpPreview: otp,
     });
