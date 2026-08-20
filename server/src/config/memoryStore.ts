@@ -16,6 +16,8 @@ export interface InMemoryState {
   auditLogs: any[];
   contactMessages: any[];
   otps: any[];
+  announcements: any[];
+  settings: Record<string, any>;
 }
 
 export const inMemoryStore: InMemoryState = {
@@ -33,6 +35,8 @@ export const inMemoryStore: InMemoryState = {
   auditLogs: [],
   contactMessages: [],
   otps: [],
+  announcements: [],
+  settings: {},
 };
 
 export const initInMemoryStore = async () => {
@@ -68,6 +72,32 @@ export const initInMemoryStore = async () => {
   inMemoryStore.contactMessages = [];
   inMemoryStore.auditLogs = [];
   inMemoryStore.otps = [];
+
+  // Live Broadcast Announcements
+  inMemoryStore.announcements = [
+    {
+      _id: 'ann_welcome',
+      title: 'Welcome to TRIDRISHTI!',
+      message: 'Earn 10 Welcome TRI Coins upon signup and share your link to unlock Level progression.',
+      type: 'PROMO', // INFO | PROMO | WARNING | ALERT
+      isActive: true,
+      link: '/how-it-works',
+      createdAt: new Date().toISOString(),
+    },
+  ];
+
+  // System Configurations & Gateway Controls
+  inMemoryStore.settings = {
+    platformName: 'TRIDRISHTI',
+    tagline: 'Community, Rewards & Welfare Ecosystem',
+    supportEmail: 'support@tridrishti.com',
+    supportPhone: '+91 98765 43210',
+    isMaintenanceMode: false,
+    maintenanceMessage: 'TRIDRISHTI is undergoing scheduled platform upgrade. We will be back online shortly.',
+    razorpayKeyId: process.env.RAZORPAY_KEY_ID || 'rzp_test_tridrishti',
+    fast2smsEnabled: Boolean(process.env.FAST2SMS_API_KEY),
+    twilioEnabled: Boolean(process.env.TWILIO_ACCOUNT_SID),
+  };
 
   // Official Membership Plans Catalog
   inMemoryStore.plans = [
@@ -264,6 +294,34 @@ export const initInMemoryStore = async () => {
     },
   ];
 
+  // Social Impact Projects
+  inMemoryStore.impactProjects = [
+    {
+      _id: 'proj_vidya',
+      title: 'Project Vidya Jyoti — Rural School Learning Kits',
+      description: 'Providing essential textbooks, stationery, and solar study lamps to 5,000 underprivileged children.',
+      targetAmount: 500000,
+      raisedAmount: 145000,
+      category: 'Education',
+      location: 'Varanasi, Uttar Pradesh',
+      imageUrl: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=600',
+      isActive: true,
+      isFeatured: true,
+    },
+    {
+      _id: 'proj_arogya',
+      title: 'Arogya Sanjeevani — Community Health Camps',
+      description: 'Free preventative health screenings, dental checkups, and prescription eyewear distribution.',
+      targetAmount: 350000,
+      raisedAmount: 98000,
+      category: 'Healthcare',
+      location: 'Jaipur, Rajasthan',
+      imageUrl: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=600',
+      isActive: true,
+      isFeatured: true,
+    },
+  ];
+
   // Dynamic Business Rules
   inMemoryStore.rules = [
     {
@@ -331,5 +389,5 @@ export const initInMemoryStore = async () => {
     },
   ];
 
-  console.log('[InMemoryStore] ✅ Clean pristine state initialized: 0 dummy users, 0 dummy claims, 0 dummy orders.');
+  console.log('[InMemoryStore] ✅ Clean state initialized with full catalog, rules, announcements & system controls.');
 };

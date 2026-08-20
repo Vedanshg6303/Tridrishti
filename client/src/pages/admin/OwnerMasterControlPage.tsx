@@ -10,8 +10,6 @@ import {
   XCircle,
   RefreshCw,
   Search,
-  ArrowUpRight,
-  ArrowDownLeft,
   DollarSign,
   Package,
   Shield,
@@ -23,7 +21,6 @@ import {
   Plus,
   Edit,
   FileJson,
-  Layers,
   Network,
   Lock,
   Activity,
@@ -31,9 +28,11 @@ import {
   MessageSquare,
   Send,
   Truck,
-  Check,
-  X,
-  ExternalLink,
+  Bell,
+  HeartPulse,
+  HeartHandshake,
+  Gift,
+  Settings as SettingsIcon,
   ShieldCheck,
 } from 'lucide-react';
 import { formatCurrency, formatPoints, formatDate, formatDateTime } from '../../utils/formatters';
@@ -45,7 +44,9 @@ export const OwnerMasterControlPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [userSearch, setUserSearch] = useState('');
   const [selectedUser, setSelectedUser] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<'database' | 'users' | 'inquiries' | 'claims' | 'redemptions' | 'network' | 'rules'>('database');
+  const [activeTab, setActiveTab] = useState<
+    'database' | 'catalog' | 'benefits' | 'inquiries' | 'claims' | 'redemptions' | 'users' | 'network' | 'announcements' | 'settings' | 'rules'
+  >('database');
 
   // Database Studio State
   const [selectedCollection, setSelectedCollection] = useState<string>('users');
@@ -58,6 +59,8 @@ export const OwnerMasterControlPage: React.FC = () => {
   const [adjustAmount, setAdjustAmount] = useState('50');
   const [adjustReason, setAdjustReason] = useState('Special Community Reward');
   const [simName, setSimName] = useState('');
+  const [airdropAmount, setAirdropAmount] = useState('25');
+  const [airdropReason, setAirdropReason] = useState('Diwali Community Airdrop');
   const [actionLoading, setActionLoading] = useState(false);
 
   // Inquiry Reply State
@@ -74,6 +77,35 @@ export const OwnerMasterControlPage: React.FC = () => {
   const [courierName, setCourierName] = useState('BlueDart Express');
   const [trackingNumber, setTrackingNumber] = useState('');
 
+  // Product Creator State
+  const [showProductModal, setShowProductModal] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<any>({
+    title: '',
+    category: 'Fashion',
+    pointsRequired: 400,
+    stock: 50,
+    imageUrl: 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=600',
+    description: '',
+    minLevelRequired: 1,
+  });
+
+  // Benefit Creator State
+  const [showBenefitModal, setShowBenefitModal] = useState(false);
+  const [editingBenefit, setEditingBenefit] = useState<any>({
+    title: '',
+    category: 'Healthcare',
+    description: '',
+    eligibility: 'All active members',
+    minLevelRequired: 1,
+    providerInfo: 'Partner Telehealth Network',
+  });
+
+  // Announcement State
+  const [annTitle, setAnnTitle] = useState('');
+  const [annMessage, setAnnMessage] = useState('');
+  const [annType, setAnnType] = useState('PROMO');
+  const [annLink, setAnnLink] = useState('/how-it-works');
+
   const fetchMasterState = async () => {
     try {
       setLoading(true);
@@ -82,6 +114,12 @@ export const OwnerMasterControlPage: React.FC = () => {
         setData(res.data);
         if (res.data.users?.length > 0 && !selectedUser) {
           setSelectedUser(res.data.users[0]);
+        }
+        if (res.data.announcements?.[0]) {
+          setAnnTitle(res.data.announcements[0].title || '');
+          setAnnMessage(res.data.announcements[0].message || '');
+          setAnnType(res.data.announcements[0].type || 'PROMO');
+          setAnnLink(res.data.announcements[0].link || '');
         }
       }
     } catch (err: any) {
@@ -120,6 +158,14 @@ export const OwnerMasterControlPage: React.FC = () => {
     setSimName('');
   };
 
+  const handleCommunityAirdrop = async () => {
+    if (!window.confirm(`🎉 Airdrop ${airdropAmount} TRI Coins to ALL active members?`)) return;
+    await handleQuickAction('COMMUNITY_AIRDROP', 'all', {
+      amount: +airdropAmount,
+      reason: airdropReason,
+    });
+  };
+
   const handleResetToZero = async () => {
     if (!window.confirm('⚠️ Are you sure you want to reset all platform data to zero? All non-admin members, claims, and orders will be cleared.')) {
       return;
@@ -138,6 +184,37 @@ export const OwnerMasterControlPage: React.FC = () => {
     link.click();
     URL.revokeObjectURL(url);
     showToast('📦 Database JSON snapshot downloaded successfully!', 'success');
+  };
+
+  // Product CRUD
+  const handleSaveProduct = async () => {
+    if (!editingProduct.title || !editingProduct.pointsRequired) {
+      showToast('Please enter title and points required', 'error');
+      return;
+    }
+    await handleQuickAction('UPSERT_PRODUCT', 'product', { product: editingProduct });
+    setShowProductModal(false);
+  };
+
+  // Benefit CRUD
+  const handleSaveBenefit = async () => {
+    if (!editingBenefit.title) {
+      showToast('Please enter benefit title', 'error');
+      return;
+    }
+    await handleQuickAction('UPSERT_BENEFIT', 'benefit', { benefit: editingBenefit });
+    setShowBenefitModal(false);
+  };
+
+  // Announcement Save
+  const handleSaveAnnouncement = async () => {
+    await handleQuickAction('SET_ANNOUNCEMENT', 'announcement', {
+      title: annTitle,
+      message: annMessage,
+      type: annType,
+      link: annLink,
+      isActive: true,
+    });
   };
 
   // Database Studio CRUD Handlers
@@ -245,6 +322,7 @@ export const OwnerMasterControlPage: React.FC = () => {
       ledger: data.ledger || [],
       contactMessages: data.contactMessages || [],
       auditLogs: data.auditLogs || [],
+      announcements: data.announcements || [],
     };
     const list = mapping[selectedCollection] || [];
     if (!dbSearch) return list;
@@ -266,15 +344,15 @@ export const OwnerMasterControlPage: React.FC = () => {
           <div className="flex items-center gap-2">
             <span className="px-3 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 text-xs font-mono font-bold uppercase flex items-center gap-1.5">
               <Zap className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-              <span>Developer & Owner Live Studio</span>
+              <span>Developer & Owner Command Center</span>
             </span>
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-display font-black text-white">
-            Tridrishti Master Command Center
+            Tridrishti Platform Control Desk
           </h1>
           <p className="text-xs text-slate-300 max-w-3xl">
-            Live database management, member queries, welfare claims, reward dispatches, downline trees, and financial audits in one interface.
+            Live database CRUD, reward catalog creator, welfare benefits, public queries, claims triage, order logistics, and system broadcasts.
           </p>
         </div>
 
@@ -363,91 +441,38 @@ export const OwnerMasterControlPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Navigation Tabs */}
+      {/* Navigation Tabs Bar */}
       <div className="flex items-center gap-2 border-b border-dark-border pb-3 overflow-x-auto">
-        <button
-          onClick={() => setActiveTab('database')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shrink-0 ${
-            activeTab === 'database'
-              ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/30'
-              : 'bg-dark-card text-slate-400 hover:text-white border border-dark-border'
-          }`}
-        >
-          <Database className="w-4 h-4" />
-          <span>🗄️ Database Studio</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('inquiries')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shrink-0 ${
-            activeTab === 'inquiries'
-              ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
-              : 'bg-dark-card text-slate-400 hover:text-white border border-dark-border'
-          }`}
-        >
-          <MessageSquare className="w-4 h-4" />
-          <span>Queries & Inquiries ({data?.contactMessages?.length || 0})</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('claims')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shrink-0 ${
-            activeTab === 'claims'
-              ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
-              : 'bg-dark-card text-slate-400 hover:text-white border border-dark-border'
-          }`}
-        >
-          <ShieldCheck className="w-4 h-4" />
-          <span>Benefit Claims ({data?.claims?.length || 0})</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('redemptions')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shrink-0 ${
-            activeTab === 'redemptions'
-              ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
-              : 'bg-dark-card text-slate-400 hover:text-white border border-dark-border'
-          }`}
-        >
-          <Package className="w-4 h-4" />
-          <span>Store Orders & Logistics ({data?.redemptions?.length || 0})</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('users')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shrink-0 ${
-            activeTab === 'users'
-              ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
-              : 'bg-dark-card text-slate-400 hover:text-white border border-dark-border'
-          }`}
-        >
-          <Users className="w-4 h-4" />
-          <span>Member Manager</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('network')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shrink-0 ${
-            activeTab === 'network'
-              ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
-              : 'bg-dark-card text-slate-400 hover:text-white border border-dark-border'
-          }`}
-        >
-          <Network className="w-4 h-4" />
-          <span>Community Trees</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('rules')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shrink-0 ${
-            activeTab === 'rules'
-              ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
-              : 'bg-dark-card text-slate-400 hover:text-white border border-dark-border'
-          }`}
-        >
-          <Sliders className="w-4 h-4" />
-          <span>Rules Engine</span>
-        </button>
+        {[
+          { id: 'database', label: '🗄️ Database Studio', icon: Database, color: 'bg-cyan-600' },
+          { id: 'catalog', label: `🛍️ Products (${data?.products?.length || 0})`, icon: Gift, color: 'bg-purple-600' },
+          { id: 'benefits', label: `🛡️ Benefits (${data?.benefits?.length || 0})`, icon: HeartPulse, color: 'bg-purple-600' },
+          { id: 'inquiries', label: `💬 Queries (${data?.contactMessages?.length || 0})`, icon: MessageSquare, color: 'bg-purple-600' },
+          { id: 'claims', label: `📑 Claims (${data?.claims?.length || 0})`, icon: ShieldCheck, color: 'bg-purple-600' },
+          { id: 'redemptions', label: `📦 Orders (${data?.redemptions?.length || 0})`, icon: Package, color: 'bg-purple-600' },
+          { id: 'users', label: '👥 Member Manager', icon: Users, color: 'bg-purple-600' },
+          { id: 'network', label: '🌳 Downlines', icon: Network, color: 'bg-purple-600' },
+          { id: 'announcements', label: '📢 Broadcasts', icon: Bell, color: 'bg-purple-600' },
+          { id: 'settings', label: '⚙️ Settings & Airdrop', icon: SettingsIcon, color: 'bg-purple-600' },
+          { id: 'rules', label: '⚡ Rules Engine', icon: Sliders, color: 'bg-purple-600' },
+        ].map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 ${
+                isActive
+                  ? `${tab.color} text-white shadow-lg`
+                  : 'bg-dark-card text-slate-400 hover:text-white border border-dark-border'
+              }`}
+            >
+              <Icon className="w-3.5 h-3.5" />
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* TAB 1: LIVE DATABASE STUDIO */}
@@ -465,15 +490,13 @@ export const OwnerMasterControlPage: React.FC = () => {
                 </p>
               </div>
 
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={openCreateDoc}
-                  className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-emerald-600/20 transition-all"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Insert Document</span>
-                </button>
-              </div>
+              <button
+                onClick={openCreateDoc}
+                className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-emerald-600/20 transition-all"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Insert Document</span>
+              </button>
             </div>
 
             <div className="flex flex-wrap gap-2 pt-1 border-t border-dark-border">
@@ -488,6 +511,7 @@ export const OwnerMasterControlPage: React.FC = () => {
                 { id: 'ledger', label: 'ledger' },
                 { id: 'contactMessages', label: 'inquiries' },
                 { id: 'auditLogs', label: 'auditLogs' },
+                { id: 'announcements', label: 'announcements' },
               ].map((col) => (
                 <button
                   key={col.id}
@@ -610,7 +634,254 @@ export const OwnerMasterControlPage: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 2: QUERIES & INQUIRIES */}
+      {/* TAB 2: PRODUCT MARKETPLACE CATALOG MANAGER */}
+      {activeTab === 'catalog' && (
+        <div className="p-6 rounded-3xl bg-dark-card/90 border border-dark-border space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Gift className="w-5 h-5 text-purple-400" />
+                <span>Rewards Store & Physical Goodies Catalog</span>
+              </h3>
+              <p className="text-xs text-slate-400">
+                Add, edit, or adjust points requirements and stock for official merchandise.
+              </p>
+            </div>
+
+            <button
+              onClick={() => {
+                setEditingProduct({
+                  title: '',
+                  category: 'Fashion',
+                  pointsRequired: 400,
+                  stock: 50,
+                  imageUrl: 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=600',
+                  description: '',
+                  minLevelRequired: 1,
+                });
+                setShowProductModal(true);
+              }}
+              className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-purple-600/30"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>+ Add New Product</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {(data?.products || []).map((p: any) => (
+              <div key={p._id} className="p-4 rounded-2xl bg-dark-bg border border-dark-border space-y-3 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="h-32 rounded-xl overflow-hidden bg-dark-card relative">
+                    <img src={p.imageUrl} alt={p.title} className="w-full h-full object-cover" />
+                    <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/70 backdrop-blur-md text-amber-400 font-mono font-bold text-[11px]">
+                      {p.pointsRequired} pts
+                    </span>
+                  </div>
+                  <div className="font-bold text-white text-xs truncate">{p.title}</div>
+                  <div className="text-[11px] text-slate-400 line-clamp-2">{p.description}</div>
+                </div>
+
+                <div className="pt-2 border-t border-dark-border flex items-center justify-between text-xs">
+                  <span className="text-slate-400 font-mono">Stock: <strong className="text-white">{p.stock}</strong></span>
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => {
+                        setEditingProduct(p);
+                        setShowProductModal(true);
+                      }}
+                      className="p-1.5 rounded-lg bg-dark-card text-slate-300 hover:text-white"
+                      title="Edit Product"
+                    >
+                      <Edit className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleQuickAction('DELETE_PRODUCT', p._id)}
+                      className="p-1.5 rounded-lg bg-dark-card text-rose-400 hover:text-rose-300"
+                      title="Delete Product"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Product Modal */}
+          {showProductModal && (
+            <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+              <div className="max-w-md w-full bg-[#080d1a] border border-purple-500/40 rounded-3xl p-6 shadow-2xl space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-white">Save Product to Marketplace</h3>
+                  <button onClick={() => setShowProductModal(false)} className="text-slate-400 text-xs">✕</button>
+                </div>
+                <div className="space-y-2 text-xs">
+                  <input
+                    type="text"
+                    value={editingProduct.title}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, title: e.target.value })}
+                    placeholder="Product Title (e.g. Eco-Cotton Hoodie)"
+                    className="w-full p-2.5 bg-dark-bg border border-dark-border rounded-xl text-white focus:outline-none focus:border-purple-500"
+                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="number"
+                      value={editingProduct.pointsRequired}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, pointsRequired: +e.target.value })}
+                      placeholder="Points Required"
+                      className="p-2.5 bg-dark-bg border border-dark-border rounded-xl text-amber-400 font-mono font-bold"
+                    />
+                    <input
+                      type="number"
+                      value={editingProduct.stock}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, stock: +e.target.value })}
+                      placeholder="Stock Count"
+                      className="p-2.5 bg-dark-bg border border-dark-border rounded-xl text-white font-mono"
+                    />
+                  </div>
+                  <input
+                    type="text"
+                    value={editingProduct.category}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value })}
+                    placeholder="Category (e.g. Fashion, Electronics, Books)"
+                    className="w-full p-2.5 bg-dark-bg border border-dark-border rounded-xl text-white"
+                  />
+                  <input
+                    type="text"
+                    value={editingProduct.imageUrl}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, imageUrl: e.target.value })}
+                    placeholder="Image URL (Unsplash or direct image link)"
+                    className="w-full p-2.5 bg-dark-bg border border-dark-border rounded-xl text-white font-mono text-[11px]"
+                  />
+                  <textarea
+                    rows={3}
+                    value={editingProduct.description}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })}
+                    placeholder="Product description and details..."
+                    className="w-full p-2.5 bg-dark-bg border border-dark-border rounded-xl text-white"
+                  />
+                </div>
+                <div className="flex justify-end gap-2 pt-2">
+                  <button onClick={() => setShowProductModal(false)} className="px-4 py-2 bg-dark-bg text-slate-300 text-xs rounded-xl">Cancel</button>
+                  <button onClick={handleSaveProduct} className="px-5 py-2 bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold rounded-xl">Save Product</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TAB 3: WELFARE BENEFITS & PERKS */}
+      {activeTab === 'benefits' && (
+        <div className="p-6 rounded-3xl bg-dark-card/90 border border-dark-border space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <HeartPulse className="w-5 h-5 text-rose-400" />
+                <span>Healthcare, Diagnostics & Welfare Benefits Catalog</span>
+              </h3>
+              <p className="text-xs text-slate-400">
+                Configure telehealth passes, preventative checkup vouchers, and scholarship programs.
+              </p>
+            </div>
+
+            <button
+              onClick={() => {
+                setEditingBenefit({
+                  title: '',
+                  category: 'Healthcare',
+                  description: '',
+                  eligibility: 'All active members',
+                  minLevelRequired: 1,
+                  providerInfo: 'Partner Telehealth Network',
+                });
+                setShowBenefitModal(true);
+              }}
+              className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-rose-600/30"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>+ Add Benefit</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {(data?.benefits || []).map((b: any) => (
+              <div key={b._id} className="p-4 rounded-2xl bg-dark-bg border border-dark-border space-y-3 flex flex-col justify-between">
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-white">{b.title}</span>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold">
+                      Level {b.minLevelRequired || 1}+
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 leading-relaxed">{b.description}</p>
+                  <div className="text-[10px] text-slate-500">Eligibility: {b.eligibility}</div>
+                </div>
+
+                <div className="pt-2 border-t border-dark-border flex justify-end gap-1">
+                  <button
+                    onClick={() => {
+                      setEditingBenefit(b);
+                      setShowBenefitModal(true);
+                    }}
+                    className="p-1.5 rounded-lg bg-dark-card text-slate-300 hover:text-white"
+                  >
+                    <Edit className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => handleQuickAction('DELETE_BENEFIT', b._id)}
+                    className="p-1.5 rounded-lg bg-dark-card text-rose-400 hover:text-rose-300"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Benefit Modal */}
+          {showBenefitModal && (
+            <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+              <div className="max-w-md w-full bg-[#080d1a] border border-rose-500/40 rounded-3xl p-6 shadow-2xl space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-white">Save Welfare Benefit</h3>
+                  <button onClick={() => setShowBenefitModal(false)} className="text-slate-400 text-xs">✕</button>
+                </div>
+                <div className="space-y-2 text-xs">
+                  <input
+                    type="text"
+                    value={editingBenefit.title}
+                    onChange={(e) => setEditingBenefit({ ...editingBenefit, title: e.target.value })}
+                    placeholder="Benefit Title (e.g. 24x7 Doctor Consult Pass)"
+                    className="w-full p-2.5 bg-dark-bg border border-dark-border rounded-xl text-white focus:outline-none focus:border-rose-500"
+                  />
+                  <input
+                    type="text"
+                    value={editingBenefit.category}
+                    onChange={(e) => setEditingBenefit({ ...editingBenefit, category: e.target.value })}
+                    placeholder="Category (Healthcare, Education, Insurance)"
+                    className="w-full p-2.5 bg-dark-bg border border-dark-border rounded-xl text-white"
+                  />
+                  <textarea
+                    rows={3}
+                    value={editingBenefit.description}
+                    onChange={(e) => setEditingBenefit({ ...editingBenefit, description: e.target.value })}
+                    placeholder="Description and utility details..."
+                    className="w-full p-2.5 bg-dark-bg border border-dark-border rounded-xl text-white"
+                  />
+                </div>
+                <div className="flex justify-end gap-2 pt-2">
+                  <button onClick={() => setShowBenefitModal(false)} className="px-4 py-2 bg-dark-bg text-slate-300 text-xs rounded-xl">Cancel</button>
+                  <button onClick={handleSaveBenefit} className="px-5 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl">Save Benefit</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TAB 4: QUERIES & INQUIRIES */}
       {activeTab === 'inquiries' && (
         <div className="p-6 rounded-3xl bg-dark-card/90 border border-dark-border space-y-6">
           <div className="flex items-center justify-between">
@@ -716,7 +987,7 @@ export const OwnerMasterControlPage: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 3: BENEFIT CLAIMS */}
+      {/* TAB 5: BENEFIT CLAIMS */}
       {activeTab === 'claims' && (
         <div className="p-6 rounded-3xl bg-dark-card/90 border border-dark-border space-y-6">
           <div className="space-y-1">
@@ -811,7 +1082,7 @@ export const OwnerMasterControlPage: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 4: STORE ORDERS & LOGISTICS */}
+      {/* TAB 6: STORE ORDERS & LOGISTICS */}
       {activeTab === 'redemptions' && (
         <div className="p-6 rounded-3xl bg-dark-card/90 border border-dark-border space-y-6">
           <div className="space-y-1">
@@ -913,7 +1184,7 @@ export const OwnerMasterControlPage: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 5: MEMBER MANAGER */}
+      {/* TAB 7: MEMBER MANAGER */}
       {activeTab === 'users' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <div className="lg:col-span-5 space-y-4">
@@ -1128,7 +1399,7 @@ export const OwnerMasterControlPage: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 6: COMMUNITY NETWORK TREE */}
+      {/* TAB 8: COMMUNITY DOWNLINES */}
       {activeTab === 'network' && (
         <div className="p-6 rounded-3xl bg-dark-card/90 border border-dark-border space-y-6">
           <div className="space-y-1">
@@ -1179,7 +1450,153 @@ export const OwnerMasterControlPage: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 7: DYNAMIC RULES ENGINE */}
+      {/* TAB 9: LIVE BROADCAST ANNOUNCEMENTS */}
+      {activeTab === 'announcements' && (
+        <div className="p-6 rounded-3xl bg-dark-card/90 border border-dark-border space-y-6">
+          <div className="space-y-1">
+            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <Bell className="w-5 h-5 text-amber-400" />
+              <span>Real-Time Broadcast Notification Banner</span>
+            </h3>
+            <p className="text-xs text-slate-400">
+              Broadcast top-bar announcement alerts to all logged-in members across the ecosystem.
+            </p>
+          </div>
+
+          <div className="space-y-4 max-w-xl">
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-slate-300">Banner Headline</label>
+              <input
+                type="text"
+                value={annTitle}
+                onChange={(e) => setAnnTitle(e.target.value)}
+                placeholder="e.g. 🎉 Double Referral Coins Promo"
+                className="w-full p-2.5 bg-dark-bg border border-dark-border rounded-xl text-xs text-white focus:outline-none focus:border-amber-500"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-slate-300">Message Content</label>
+              <textarea
+                rows={3}
+                value={annMessage}
+                onChange={(e) => setAnnMessage(e.target.value)}
+                placeholder="Detailed message shown to all members..."
+                className="w-full p-2.5 bg-dark-bg border border-dark-border rounded-xl text-xs text-white focus:outline-none focus:border-amber-500"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-300">Banner Theme</label>
+                <select
+                  value={annType}
+                  onChange={(e) => setAnnType(e.target.value)}
+                  className="w-full p-2.5 bg-dark-bg border border-dark-border rounded-xl text-xs text-white"
+                >
+                  <option value="PROMO">Promo (Amber Gradient)</option>
+                  <option value="INFO">Info (Blue Theme)</option>
+                  <option value="WARNING">Alert / Maintenance (Rose)</option>
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-300">Action Link (Optional)</label>
+                <input
+                  type="text"
+                  value={annLink}
+                  onChange={(e) => setAnnLink(e.target.value)}
+                  placeholder="/rewards or /how-it-works"
+                  className="w-full p-2.5 bg-dark-bg border border-dark-border rounded-xl text-xs text-white"
+                />
+              </div>
+            </div>
+
+            <button
+              onClick={handleSaveAnnouncement}
+              disabled={actionLoading}
+              className="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/25 flex items-center gap-2"
+            >
+              <Save className="w-4 h-4" />
+              <span>Broadcast Live Banner</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 10: SETTINGS & COMMUNITY AIRDROP */}
+      {activeTab === 'settings' && (
+        <div className="p-6 rounded-3xl bg-dark-card/90 border border-dark-border space-y-8">
+          {/* Mass Community Airdrop */}
+          <div className="space-y-4 p-5 rounded-2xl bg-gradient-to-r from-purple-950/40 to-dark-bg border border-purple-500/30">
+            <div className="space-y-1">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-amber-400" />
+                <span>Mass Community Coin Airdrop</span>
+              </h3>
+              <p className="text-xs text-slate-400">
+                Credit promotional TRI Coins to every active registered member on the platform simultaneously.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <input
+                type="number"
+                value={airdropAmount}
+                onChange={(e) => setAirdropAmount(e.target.value)}
+                placeholder="Coins to credit per member"
+                className="p-2.5 bg-dark-card border border-dark-border rounded-xl text-xs text-amber-400 font-mono font-bold"
+              />
+              <input
+                type="text"
+                value={airdropReason}
+                onChange={(e) => setAirdropReason(e.target.value)}
+                placeholder="Airdrop note for ledger"
+                className="p-2.5 bg-dark-card border border-dark-border rounded-xl text-xs text-white"
+              />
+              <button
+                onClick={handleCommunityAirdrop}
+                disabled={actionLoading}
+                className="py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Execute Mass Airdrop</span>
+              </button>
+            </div>
+          </div>
+
+          {/* System Settings & Contact Meta */}
+          <div className="space-y-4 max-w-xl">
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <SettingsIcon className="w-4 h-4 text-slate-400" />
+              <span>Platform Metadata & Support Information</span>
+            </h3>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-300">Support Email</label>
+                <input
+                  type="email"
+                  defaultValue={data?.settings?.supportEmail || 'support@tridrishti.com'}
+                  onBlur={(e) => handleQuickAction('UPDATE_SYSTEM_SETTINGS', 'settings', { supportEmail: e.target.value })}
+                  className="w-full p-2.5 bg-dark-bg border border-dark-border rounded-xl text-xs text-white"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-300">Support Phone</label>
+                <input
+                  type="text"
+                  defaultValue={data?.settings?.supportPhone || '+91 98765 43210'}
+                  onBlur={(e) => handleQuickAction('UPDATE_SYSTEM_SETTINGS', 'settings', { supportPhone: e.target.value })}
+                  className="w-full p-2.5 bg-dark-bg border border-dark-border rounded-xl text-xs text-white"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 11: DYNAMIC RULES ENGINE */}
       {activeTab === 'rules' && (
         <div className="p-6 rounded-3xl bg-dark-card/90 border border-dark-border space-y-6">
           <div className="space-y-1">

@@ -6,7 +6,7 @@ import { PointTransactionType, UserRole, KYCStatus } from '../constants';
 
 /**
  * Master State: Single aggregated endpoint returning full platform financials,
- * user metrics, dynamic rules, claims, redemptions, and contact inquiries.
+ * user metrics, dynamic rules, claims, redemptions, catalog, announcements, and settings.
  */
 export const getMasterState = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
@@ -40,11 +40,14 @@ export const getMasterState = async (req: AuthenticatedRequest, res: Response): 
       plans: inMemoryStore.plans,
       products: inMemoryStore.products,
       benefits: inMemoryStore.benefits,
+      impactProjects: inMemoryStore.impactProjects,
       claims: inMemoryStore.claims,
       redemptions: inMemoryStore.redemptions,
       contactMessages: inMemoryStore.contactMessages,
       auditLogs: inMemoryStore.auditLogs,
       ledger: inMemoryStore.ledger,
+      announcements: inMemoryStore.announcements,
+      settings: inMemoryStore.settings,
     });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
@@ -52,7 +55,7 @@ export const getMasterState = async (req: AuthenticatedRequest, res: Response): 
 };
 
 /**
- * Execute fast owner/developer interventions
+ * Complete suite of Developer and Owner quick actions
  */
 export const executeQuickAction = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
@@ -72,6 +75,33 @@ export const executeQuickAction = async (req: AuthenticatedRequest, res: Respons
           req.user?._id
         );
         res.status(200).json({ success: true, message: `Adjusted points by ${amount}`, result });
+        return;
+      }
+
+      case 'COMMUNITY_AIRDROP': {
+        const { amount, reason } = payload;
+        const airdropPoints = +amount || 10;
+        const note = reason || `Community Celebration Airdrop by ${actorName}`;
+
+        let creditedCount = 0;
+        for (const u of inMemoryStore.users) {
+          if (u.role !== UserRole.SUPER_ADMIN && !u.isSuspended) {
+            await PointsEngine.creditPoints(
+              u._id,
+              airdropPoints,
+              PointTransactionType.ADMIN_ADJUSTMENT,
+              'COMMUNITY_AIRDROP',
+              note,
+              undefined,
+              req.user?._id
+            );
+            creditedCount++;
+          }
+        }
+        res.status(200).json({
+          success: true,
+          message: `🎉 Successfully airdropped ${airdropPoints} TRI Coins to all ${creditedCount} active members!`,
+        });
         return;
       }
 
@@ -106,6 +136,89 @@ export const executeQuickAction = async (req: AuthenticatedRequest, res: Respons
         return;
       }
 
+      case 'UPSERT_PRODUCT': {
+        const { product } = payload;
+        const prodId = product._id || `prod_${Date.now()}`;
+        const idx = inMemoryStore.products.findIndex((p) => p._id === prodId);
+        const item = { ...product, _id: prodId, updatedAt: new Date().toISOString() };
+        if (idx !== -1) {
+          inMemoryStore.products[idx] = item;
+        } else {
+          inMemoryStore.products.push(item);
+        }
+        res.status(200).json({ success: true, message: `Product ${item.title} saved to catalog!`, product: item });
+        return;
+      }
+
+      case 'DELETE_PRODUCT': {
+        const idx = inMemoryStore.products.findIndex((p) => p._id === targetUserId);
+        if (idx !== -1) {
+          inMemoryStore.products.splice(idx, 1);
+        }
+        res.status(200).json({ success: true, message: 'Product removed from marketplace' });
+        return;
+      }
+
+      case 'UPSERT_BENEFIT': {
+        const { benefit } = payload;
+        const benId = benefit._id || `ben_${Date.now()}`;
+        const idx = inMemoryStore.benefits.findIndex((b) => b._id === benId);
+        const item = { ...benefit, _id: benId, updatedAt: new Date().toISOString() };
+        if (idx !== -1) {
+          inMemoryStore.benefits[idx] = item;
+        } else {
+          inMemoryStore.benefits.push(item);
+        }
+        res.status(200).json({ success: true, message: `Welfare Benefit ${item.title} saved!`, benefit: item });
+        return;
+      }
+
+      case 'DELETE_BENEFIT': {
+        const idx = inMemoryStore.benefits.findIndex((b) => b._id === targetUserId);
+        if (idx !== -1) {
+          inMemoryStore.benefits.splice(idx, 1);
+        }
+        res.status(200).json({ success: true, message: 'Benefit removed from catalog' });
+        return;
+      }
+
+      case 'UPSERT_IMPACT_PROJECT': {
+        const { project } = payload;
+        const projId = project._id || `proj_${Date.now()}`;
+        const idx = inMemoryStore.impactProjects.findIndex((p) => p._id === projId);
+        const item = { ...project, _id: projId, updatedAt: new Date().toISOString() };
+        if (idx !== -1) {
+          inMemoryStore.impactProjects[idx] = item;
+        } else {
+          inMemoryStore.impactProjects.push(item);
+        }
+        res.status(200).json({ success: true, message: `Social Impact initiative ${item.title} saved!`, project: item });
+        return;
+      }
+
+      case 'SET_ANNOUNCEMENT': {
+        const { title, message, type, link, isActive } = payload;
+        inMemoryStore.announcements = [
+          {
+            _id: `ann_${Date.now()}`,
+            title: title || 'System Announcement',
+            message: message || '',
+            type: type || 'PROMO',
+            link: link || '',
+            isActive: isActive !== false,
+            createdAt: new Date().toISOString(),
+          },
+        ];
+        res.status(200).json({ success: true, message: 'Live Broadcast Announcement banner updated!', announcements: inMemoryStore.announcements });
+        return;
+      }
+
+      case 'UPDATE_SYSTEM_SETTINGS': {
+        inMemoryStore.settings = { ...inMemoryStore.settings, ...payload };
+        res.status(200).json({ success: true, message: 'System configurations updated successfully!', settings: inMemoryStore.settings });
+        return;
+      }
+
       case 'UPDATE_RULE': {
         const { ruleKey, value } = payload;
         const rule = inMemoryStore.rules.find((r) => r.key === ruleKey);
@@ -119,45 +232,6 @@ export const executeQuickAction = async (req: AuthenticatedRequest, res: Respons
       case 'RESET_DATA_TO_ZERO': {
         await initInMemoryStore();
         res.status(200).json({ success: true, message: 'All dummy platform data wiped and reset to zero state successfully!' });
-        return;
-      }
-
-      case 'SIMULATE_REFERRAL': {
-        const sponsor = inMemoryStore.users.find((u) => u._id === targetUserId) || inMemoryStore.users[0];
-        const newUserName = payload.name || `Member_${Math.random().toString(36).substring(2, 6)}`;
-        const newUserEmail = payload.email || `${newUserName.toLowerCase()}@example.com`;
-
-        const newUser = {
-          _id: `user_sim_${Date.now()}`,
-          name: newUserName,
-          email: newUserEmail,
-          phone: '+91 9900000000',
-          role: UserRole.USER,
-          referralCode: `TRI-${newUserName.toUpperCase().substring(0, 5)}-${Math.floor(100 + Math.random() * 900)}`,
-          referredBy: sponsor.referralCode,
-          referrerUserId: sponsor._id,
-          level: 1,
-          levelName: 'STARTER',
-          pointsBalance: 10, // 10 Welcome points
-          lifetimePointsEarned: 10,
-          lifetimePointsUsed: 0,
-          kycStatus: KYCStatus.NOT_SUBMITTED,
-          isActive: true,
-          isSuspended: false,
-          createdAt: new Date().toISOString(),
-        };
-
-        inMemoryStore.users.push(newUser);
-
-        // Reward sponsor with 10 TRI Coins!
-        await PointsEngine.awardReferralBonus(sponsor._id, newUser.name, `sim_order_${Date.now()}`);
-
-        res.status(201).json({
-          success: true,
-          message: `Simulated ₹100 Onboarding: ${newUser.name} registered under ${sponsor.name}. 10 TRI Coins credited to sponsor!`,
-          newUser,
-          sponsorBalance: sponsor.pointsBalance,
-        });
         return;
       }
 
@@ -227,6 +301,45 @@ export const executeQuickAction = async (req: AuthenticatedRequest, res: Respons
         return;
       }
 
+      case 'SIMULATE_REFERRAL': {
+        const sponsor = inMemoryStore.users.find((u) => u._id === targetUserId) || inMemoryStore.users[0];
+        const newUserName = payload.name || `Member_${Math.random().toString(36).substring(2, 6)}`;
+        const newUserEmail = payload.email || `${newUserName.toLowerCase()}@example.com`;
+
+        const newUser = {
+          _id: `user_sim_${Date.now()}`,
+          name: newUserName,
+          email: newUserEmail,
+          phone: '+91 9900000000',
+          role: UserRole.USER,
+          referralCode: `TRI-${newUserName.toUpperCase().substring(0, 5)}-${Math.floor(100 + Math.random() * 900)}`,
+          referredBy: sponsor.referralCode,
+          referrerUserId: sponsor._id,
+          level: 1,
+          levelName: 'STARTER',
+          pointsBalance: 10, // 10 Welcome points
+          lifetimePointsEarned: 10,
+          lifetimePointsUsed: 0,
+          kycStatus: KYCStatus.NOT_SUBMITTED,
+          isActive: true,
+          isSuspended: false,
+          createdAt: new Date().toISOString(),
+        };
+
+        inMemoryStore.users.push(newUser);
+
+        // Reward sponsor with 10 TRI Coins!
+        await PointsEngine.awardReferralBonus(sponsor._id, newUser.name, `sim_order_${Date.now()}`);
+
+        res.status(201).json({
+          success: true,
+          message: `Simulated ₹100 Onboarding: ${newUser.name} registered under ${sponsor.name}. 10 TRI Coins credited to sponsor!`,
+          newUser,
+          sponsorBalance: sponsor.pointsBalance,
+        });
+        return;
+      }
+
       default:
         res.status(400).json({ success: false, message: 'Unknown quick action' });
     }
@@ -248,12 +361,14 @@ export const executeDatabaseStudio = async (req: AuthenticatedRequest, res: Resp
       plans: 'plans',
       products: 'products',
       benefits: 'benefits',
+      impactProjects: 'impactProjects',
       claims: 'claims',
       redemptions: 'redemptions',
       ledger: 'ledger',
       tickets: 'tickets',
       contactMessages: 'contactMessages',
       auditLogs: 'auditLogs',
+      announcements: 'announcements',
     };
 
     const key = allowedCollections[collection];
