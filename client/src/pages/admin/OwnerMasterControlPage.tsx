@@ -28,6 +28,13 @@ import {
   Lock,
   Activity,
   Save,
+  MessageSquare,
+  Send,
+  Truck,
+  Check,
+  X,
+  ExternalLink,
+  ShieldCheck,
 } from 'lucide-react';
 import { formatCurrency, formatPoints, formatDate, formatDateTime } from '../../utils/formatters';
 import api from '../../utils/api';
@@ -38,7 +45,7 @@ export const OwnerMasterControlPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [userSearch, setUserSearch] = useState('');
   const [selectedUser, setSelectedUser] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<'database' | 'users' | 'network' | 'rules' | 'claims' | 'redemptions' | 'inquiries'>('database');
+  const [activeTab, setActiveTab] = useState<'database' | 'users' | 'inquiries' | 'claims' | 'redemptions' | 'network' | 'rules'>('database');
 
   // Database Studio State
   const [selectedCollection, setSelectedCollection] = useState<string>('users');
@@ -52,6 +59,20 @@ export const OwnerMasterControlPage: React.FC = () => {
   const [adjustReason, setAdjustReason] = useState('Special Community Reward');
   const [simName, setSimName] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+
+  // Inquiry Reply State
+  const [selectedInquiry, setSelectedInquiry] = useState<any>(null);
+  const [replyText, setReplyText] = useState('');
+
+  // Claim Review State
+  const [selectedClaim, setSelectedClaim] = useState<any>(null);
+  const [claimReviewNotes, setClaimReviewNotes] = useState('');
+  const [claimDisbursementRef, setClaimDisbursementRef] = useState('');
+
+  // Redemption Courier State
+  const [selectedRedemption, setSelectedRedemption] = useState<any>(null);
+  const [courierName, setCourierName] = useState('BlueDart Express');
+  const [trackingNumber, setTrackingNumber] = useState('');
 
   const fetchMasterState = async () => {
     try {
@@ -174,6 +195,42 @@ export const OwnerMasterControlPage: React.FC = () => {
     setJsonInput(JSON.stringify({ _id: `${selectedCollection}_${Date.now()}` }, null, 2));
   };
 
+  // Inquiry Reply Handler
+  const handleReplyInquiry = async () => {
+    if (!selectedInquiry) return;
+    await handleQuickAction('RESOLVE_INQUIRY', selectedInquiry._id, {
+      status: 'RESOLVED',
+      reply: replyText,
+    });
+    setReplyText('');
+    setSelectedInquiry(null);
+  };
+
+  // Claim Status Update Handler
+  const handleUpdateClaim = async (status: string) => {
+    if (!selectedClaim) return;
+    await handleQuickAction('UPDATE_CLAIM', selectedClaim._id, {
+      status,
+      reviewNotes: claimReviewNotes || undefined,
+      disbursementTxnRef: claimDisbursementRef || undefined,
+    });
+    setSelectedClaim(null);
+    setClaimReviewNotes('');
+    setClaimDisbursementRef('');
+  };
+
+  // Redemption Dispatch Handler
+  const handleUpdateRedemption = async (status: string) => {
+    if (!selectedRedemption) return;
+    await handleQuickAction('UPDATE_REDEMPTION', selectedRedemption._id, {
+      status,
+      courierPartner: courierName,
+      trackingNumber,
+    });
+    setSelectedRedemption(null);
+    setTrackingNumber('');
+  };
+
   // Get current active collection list for Database Studio
   const getActiveCollectionData = () => {
     if (!data) return [];
@@ -217,7 +274,7 @@ export const OwnerMasterControlPage: React.FC = () => {
             Tridrishti Master Command Center
           </h1>
           <p className="text-xs text-slate-300 max-w-3xl">
-            Live database management, raw collection query inspector, member downline trees, financial ledger auditing, and 1-click system interventions.
+            Live database management, member queries, welfare claims, reward dispatches, downline trees, and financial audits in one interface.
           </p>
         </div>
 
@@ -294,14 +351,14 @@ export const OwnerMasterControlPage: React.FC = () => {
 
         <div className="p-5 rounded-2xl bg-dark-card/90 border border-dark-border space-y-2">
           <div className="flex items-center justify-between text-xs text-slate-400">
-            <span>Pending Triage Tasks</span>
+            <span>Pending Inquiries & Tasks</span>
             <Activity className="w-4 h-4 text-purple-400" />
           </div>
           <div className="text-2xl font-display font-black text-purple-400">
-            {(data?.stats?.pendingClaimsCount || 0) + (data?.stats?.pendingRedemptionsCount || 0)}
+            {(data?.stats?.unreadInquiriesCount || 0) + (data?.stats?.pendingClaimsCount || 0) + (data?.stats?.pendingRedemptionsCount || 0)}
           </div>
           <div className="text-[10px] text-slate-400 font-mono">
-            Claims: {data?.stats?.pendingClaimsCount || 0} | Orders: {data?.stats?.pendingRedemptionsCount || 0}
+            Queries: {data?.stats?.unreadInquiriesCount || 0} | Claims: {data?.stats?.pendingClaimsCount || 0} | Orders: {data?.stats?.pendingRedemptionsCount || 0}
           </div>
         </div>
       </div>
@@ -318,6 +375,42 @@ export const OwnerMasterControlPage: React.FC = () => {
         >
           <Database className="w-4 h-4" />
           <span>🗄️ Database Studio</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('inquiries')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shrink-0 ${
+            activeTab === 'inquiries'
+              ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
+              : 'bg-dark-card text-slate-400 hover:text-white border border-dark-border'
+          }`}
+        >
+          <MessageSquare className="w-4 h-4" />
+          <span>Queries & Inquiries ({data?.contactMessages?.length || 0})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('claims')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shrink-0 ${
+            activeTab === 'claims'
+              ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
+              : 'bg-dark-card text-slate-400 hover:text-white border border-dark-border'
+          }`}
+        >
+          <ShieldCheck className="w-4 h-4" />
+          <span>Benefit Claims ({data?.claims?.length || 0})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('redemptions')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shrink-0 ${
+            activeTab === 'redemptions'
+              ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
+              : 'bg-dark-card text-slate-400 hover:text-white border border-dark-border'
+          }`}
+        >
+          <Package className="w-4 h-4" />
+          <span>Store Orders & Logistics ({data?.redemptions?.length || 0})</span>
         </button>
 
         <button
@@ -361,7 +454,6 @@ export const OwnerMasterControlPage: React.FC = () => {
       {activeTab === 'database' && (
         <div className="space-y-6">
           <div className="p-6 rounded-3xl bg-dark-card/90 border border-dark-border space-y-6">
-            {/* Database Studio Controls */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="space-y-1">
                 <h3 className="text-lg font-bold text-white flex items-center gap-2">
@@ -384,7 +476,6 @@ export const OwnerMasterControlPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Collection Selector Tabs */}
             <div className="flex flex-wrap gap-2 pt-1 border-t border-dark-border">
               {[
                 { id: 'users', label: 'users' },
@@ -412,7 +503,6 @@ export const OwnerMasterControlPage: React.FC = () => {
               ))}
             </div>
 
-            {/* Search filter in collection */}
             <div className="relative">
               <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
@@ -424,7 +514,6 @@ export const OwnerMasterControlPage: React.FC = () => {
               />
             </div>
 
-            {/* Raw Documents Table */}
             <div className="border border-dark-border rounded-2xl overflow-hidden">
               <div className="max-h-[500px] overflow-y-auto divide-y divide-dark-border font-mono text-xs">
                 {getActiveCollectionData().length === 0 ? (
@@ -472,7 +561,7 @@ export const OwnerMasterControlPage: React.FC = () => {
             </div>
           </div>
 
-          {/* JSON Document Editor / Modal */}
+          {/* JSON Document Editor Modal */}
           {rawEditorDoc && (
             <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
               <div className="max-w-2xl w-full bg-[#080d1a] border border-cyan-500/40 rounded-3xl p-6 shadow-2xl space-y-4">
@@ -521,10 +610,312 @@ export const OwnerMasterControlPage: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 2: MEMBER MANAGER & FAST INTERVENTIONS */}
+      {/* TAB 2: QUERIES & INQUIRIES */}
+      {activeTab === 'inquiries' && (
+        <div className="p-6 rounded-3xl bg-dark-card/90 border border-dark-border space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <MessageSquare className="w-5 h-5 text-purple-400" />
+                <span>Public Inquiries & Contact Submissions</span>
+              </h3>
+              <p className="text-xs text-slate-400">
+                View incoming messages, reply to inquiries, and update query statuses directly from here.
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {(data?.contactMessages || []).length === 0 ? (
+              <div className="p-12 text-center text-slate-500 text-xs border border-dashed border-dark-border rounded-2xl">
+                No user queries or inquiries submitted yet.
+              </div>
+            ) : (
+              data?.contactMessages?.map((m: any) => (
+                <div key={m._id} className="p-5 rounded-2xl bg-dark-bg border border-dark-border space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-dark-border/60 pb-3">
+                    <div className="space-y-0.5">
+                      <div className="text-sm font-bold text-white flex items-center gap-2">
+                        <span>{m.name}</span>
+                        <span className="text-xs text-slate-400 font-normal">({m.email})</span>
+                      </div>
+                      <div className="text-xs text-purple-300 font-semibold">{m.subject || 'General Inquiry'}</div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold ${
+                        m.status === 'RESOLVED' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
+                        m.status === 'READ' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
+                        'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                      }`}>
+                        {m.status || 'UNREAD'}
+                      </span>
+                      <button
+                        onClick={() => setSelectedInquiry(m)}
+                        className="px-3 py-1 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold"
+                      >
+                        Reply
+                      </button>
+                      <button
+                        onClick={() => handleQuickAction('DELETE_INQUIRY', m._id)}
+                        className="p-1 rounded-lg text-slate-400 hover:text-rose-400 transition-colors"
+                        title="Delete Inquiry"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-slate-300 leading-relaxed bg-dark-card/50 p-3 rounded-xl border border-dark-border/40">
+                    "{m.message}"
+                  </p>
+
+                  {m.adminReply && (
+                    <div className="p-3 rounded-xl bg-purple-950/30 border border-purple-500/30 text-xs text-purple-200 space-y-1">
+                      <div className="font-bold flex items-center gap-1.5 text-purple-300">
+                        <span>Admin Reply by {m.repliedBy || 'Platform Admin'}</span>
+                        <span className="text-[10px] text-slate-400 font-mono">({formatDateTime(m.repliedAt)})</span>
+                      </div>
+                      <p>{m.adminReply}</p>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Reply Modal */}
+          {selectedInquiry && (
+            <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+              <div className="max-w-lg w-full bg-[#080d1a] border border-purple-500/40 rounded-3xl p-6 shadow-2xl space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-white">Reply to {selectedInquiry.name}</h3>
+                  <button onClick={() => setSelectedInquiry(null)} className="text-slate-400 text-xs">✕</button>
+                </div>
+                <div className="p-3 bg-dark-bg rounded-xl text-xs text-slate-300">
+                  <strong className="text-white block">Query:</strong>
+                  {selectedInquiry.message}
+                </div>
+                <textarea
+                  rows={4}
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                  placeholder="Type your official response..."
+                  className="w-full p-3 bg-dark-bg border border-dark-border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                />
+                <div className="flex justify-end gap-2">
+                  <button onClick={() => setSelectedInquiry(null)} className="px-4 py-2 bg-dark-bg text-slate-300 text-xs rounded-xl">Cancel</button>
+                  <button onClick={handleReplyInquiry} className="px-5 py-2 bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold rounded-xl flex items-center gap-1.5">
+                    <Send className="w-3.5 h-3.5" />
+                    <span>Send & Resolve</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TAB 3: BENEFIT CLAIMS */}
+      {activeTab === 'claims' && (
+        <div className="p-6 rounded-3xl bg-dark-card/90 border border-dark-border space-y-6">
+          <div className="space-y-1">
+            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-emerald-400" />
+              <span>Healthcare, Diagnostics & Education Claims Triage</span>
+            </h3>
+            <p className="text-xs text-slate-400">
+              Review member benefit requests, approve assistance passes, or disburse grant funds.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {(data?.claims || []).length === 0 ? (
+              <div className="p-12 text-center text-slate-500 text-xs border border-dashed border-dark-border rounded-2xl">
+                No benefit claims submitted yet.
+              </div>
+            ) : (
+              data?.claims?.map((c: any) => (
+                <div key={c._id} className="p-5 rounded-2xl bg-dark-bg border border-dark-border space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-dark-border/60 pb-3">
+                    <div>
+                      <div className="text-sm font-bold text-white">{c.benefitTitle || c.title || 'Welfare Benefit Pass'}</div>
+                      <div className="text-xs text-slate-400">Member ID: {c.userId} | Category: {c.category || 'Healthcare'}</div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold ${
+                        c.status === 'APPROVED' || c.status === 'DISBURSED' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
+                        c.status === 'REJECTED' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' :
+                        'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                      }`}>
+                        {c.status || 'PENDING'}
+                      </span>
+                      <button
+                        onClick={() => setSelectedClaim(c)}
+                        className="px-3 py-1 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold"
+                      >
+                        Triage / Review
+                      </button>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-slate-300 bg-dark-card/50 p-3 rounded-xl border border-dark-border/40">
+                    {c.claimDetails || c.description || 'Request for welfare assistance voucher'}
+                  </p>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Claim Review Modal */}
+          {selectedClaim && (
+            <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+              <div className="max-w-lg w-full bg-[#080d1a] border border-emerald-500/40 rounded-3xl p-6 shadow-2xl space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-white">Triage Benefit Claim: {selectedClaim._id}</h3>
+                  <button onClick={() => setSelectedClaim(null)} className="text-slate-400 text-xs">✕</button>
+                </div>
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    value={claimReviewNotes}
+                    onChange={(e) => setClaimReviewNotes(e.target.value)}
+                    placeholder="Review Notes (e.g. Approved for full diagnostic checkup)"
+                    className="w-full p-2.5 bg-dark-bg border border-dark-border rounded-xl text-xs text-white focus:outline-none focus:border-emerald-500"
+                  />
+                  <input
+                    type="text"
+                    value={claimDisbursementRef}
+                    onChange={(e) => setClaimDisbursementRef(e.target.value)}
+                    placeholder="Payout Txn Ref (optional e.g. DISB-2026-9921)"
+                    className="w-full p-2.5 bg-dark-bg border border-dark-border rounded-xl text-xs text-white font-mono focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+                <div className="flex justify-between pt-2">
+                  <button onClick={() => handleUpdateClaim('REJECTED')} className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl">
+                    Reject Claim
+                  </button>
+                  <div className="flex gap-2">
+                    <button onClick={() => handleUpdateClaim('APPROVED')} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl">
+                      Approve Pass
+                    </button>
+                    <button onClick={() => handleUpdateClaim('DISBURSED')} className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold rounded-xl">
+                      Disburse Funds
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TAB 4: STORE ORDERS & LOGISTICS */}
+      {activeTab === 'redemptions' && (
+        <div className="p-6 rounded-3xl bg-dark-card/90 border border-dark-border space-y-6">
+          <div className="space-y-1">
+            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <Package className="w-5 h-5 text-amber-400" />
+              <span>Reward Marketplace Orders & Logistics Fulfillment</span>
+            </h3>
+            <p className="text-xs text-slate-400">
+              Manage member merchandise redemptions, assign courier AWB tracking numbers, and dispatch goodies.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {(data?.redemptions || []).length === 0 ? (
+              <div className="p-12 text-center text-slate-500 text-xs border border-dashed border-dark-border rounded-2xl">
+                No merchandise redemption orders placed yet.
+              </div>
+            ) : (
+              data?.redemptions?.map((r: any) => (
+                <div key={r._id} className="p-5 rounded-2xl bg-dark-bg border border-dark-border space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-dark-border/60 pb-3">
+                    <div>
+                      <div className="text-sm font-bold text-white">{r.productTitle || 'Physical Goodie Item'}</div>
+                      <div className="text-xs text-slate-400">Order ID: {r._id} | Points Used: <strong className="text-amber-400 font-mono">{r.pointsUsed} pts</strong></div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold ${
+                        r.status === 'DELIVERED' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
+                        r.status === 'DISPATCHED' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' :
+                        r.status === 'REJECTED' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' :
+                        'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                      }`}>
+                        {r.status || 'PENDING'}
+                      </span>
+                      <button
+                        onClick={() => setSelectedRedemption(r)}
+                        className="px-3 py-1 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold flex items-center gap-1.5"
+                      >
+                        <Truck className="w-3.5 h-3.5" />
+                        <span>Fulfill / Dispatch</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="text-xs text-slate-300 bg-dark-card/50 p-3 rounded-xl border border-dark-border/40 space-y-1">
+                    <div><strong className="text-white">Shipping Address:</strong> {r.shippingAddress?.line1 || r.address || 'Address provided on file'}, {r.shippingAddress?.city || ''} {r.shippingAddress?.pincode || ''}</div>
+                    {r.trackingNumber && (
+                      <div className="text-cyan-300 font-mono text-[11px]">
+                        Courier: {r.courierPartner || 'BlueDart'} | AWB: {r.trackingNumber}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Fulfillment Modal */}
+          {selectedRedemption && (
+            <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+              <div className="max-w-lg w-full bg-[#080d1a] border border-amber-500/40 rounded-3xl p-6 shadow-2xl space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-white">Dispatch Order: {selectedRedemption.productTitle}</h3>
+                  <button onClick={() => setSelectedRedemption(null)} className="text-slate-400 text-xs">✕</button>
+                </div>
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    value={courierName}
+                    onChange={(e) => setCourierName(e.target.value)}
+                    placeholder="Courier Partner (e.g. BlueDart, Delhivery, DTDC)"
+                    className="w-full p-2.5 bg-dark-bg border border-dark-border rounded-xl text-xs text-white focus:outline-none focus:border-amber-500"
+                  />
+                  <input
+                    type="text"
+                    value={trackingNumber}
+                    onChange={(e) => setTrackingNumber(e.target.value)}
+                    placeholder="AWB Tracking Number (e.g. BLUEDART-88219482)"
+                    className="w-full p-2.5 bg-dark-bg border border-dark-border rounded-xl text-xs text-white font-mono focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+                <div className="flex justify-between pt-2">
+                  <button onClick={() => handleUpdateRedemption('REJECTED')} className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl">
+                    Reject & Auto-Refund
+                  </button>
+                  <div className="flex gap-2">
+                    <button onClick={() => handleUpdateRedemption('DISPATCHED')} className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold rounded-xl">
+                      Mark Dispatched
+                    </button>
+                    <button onClick={() => handleUpdateRedemption('DELIVERED')} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl">
+                      Mark Delivered
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TAB 5: MEMBER MANAGER */}
       {activeTab === 'users' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* User Selector List */}
           <div className="lg:col-span-5 space-y-4">
             <div className="relative">
               <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -578,7 +969,6 @@ export const OwnerMasterControlPage: React.FC = () => {
             </div>
           </div>
 
-          {/* User Control & Quick Actions Workspace */}
           {selectedUser ? (
             <div className="lg:col-span-7 space-y-6">
               <div className="p-6 rounded-3xl bg-dark-card border border-dark-border space-y-6">
@@ -738,7 +1128,7 @@ export const OwnerMasterControlPage: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 3: COMMUNITY NETWORK TREE */}
+      {/* TAB 6: COMMUNITY NETWORK TREE */}
       {activeTab === 'network' && (
         <div className="p-6 rounded-3xl bg-dark-card/90 border border-dark-border space-y-6">
           <div className="space-y-1">
@@ -789,7 +1179,7 @@ export const OwnerMasterControlPage: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 4: DYNAMIC RULES ENGINE */}
+      {/* TAB 7: DYNAMIC RULES ENGINE */}
       {activeTab === 'rules' && (
         <div className="p-6 rounded-3xl bg-dark-card/90 border border-dark-border space-y-6">
           <div className="space-y-1">

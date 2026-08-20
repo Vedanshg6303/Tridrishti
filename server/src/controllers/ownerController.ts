@@ -161,6 +161,72 @@ export const executeQuickAction = async (req: AuthenticatedRequest, res: Respons
         return;
       }
 
+      case 'RESOLVE_INQUIRY': {
+        const { status, reply } = payload;
+        const msg = inMemoryStore.contactMessages.find((m) => m._id === targetUserId);
+        if (msg) {
+          msg.status = status || 'RESOLVED';
+          if (reply) {
+            msg.adminReply = reply;
+            msg.repliedAt = new Date().toISOString();
+            msg.repliedBy = actorName;
+          }
+        }
+        res.status(200).json({ success: true, message: `Inquiry status updated to ${status || 'RESOLVED'}`, msg });
+        return;
+      }
+
+      case 'DELETE_INQUIRY': {
+        const idx = inMemoryStore.contactMessages.findIndex((m) => m._id === targetUserId);
+        if (idx !== -1) {
+          inMemoryStore.contactMessages.splice(idx, 1);
+        }
+        res.status(200).json({ success: true, message: 'Inquiry deleted successfully' });
+        return;
+      }
+
+      case 'UPDATE_CLAIM': {
+        const { status, reviewNotes, disbursementTxnRef } = payload;
+        const claim = inMemoryStore.claims.find((c) => c._id === targetUserId);
+        if (claim) {
+          claim.status = status;
+          claim.reviewNotes = reviewNotes || claim.reviewNotes;
+          claim.reviewedBy = actorName;
+          claim.reviewedAt = new Date().toISOString();
+          if (disbursementTxnRef) {
+            claim.disbursementTxnRef = disbursementTxnRef;
+          }
+        }
+        res.status(200).json({ success: true, message: `Benefit claim updated to ${status}`, claim });
+        return;
+      }
+
+      case 'UPDATE_REDEMPTION': {
+        const { status, trackingNumber, courierPartner } = payload;
+        const rdm = inMemoryStore.redemptions.find((r) => r._id === targetUserId);
+        if (rdm) {
+          rdm.status = status;
+          if (trackingNumber) rdm.trackingNumber = trackingNumber;
+          if (courierPartner) rdm.courierPartner = courierPartner;
+          rdm.updatedAt = new Date().toISOString();
+
+          // Auto-refund if rejected
+          if (status === 'REJECTED') {
+            await PointsEngine.creditPoints(
+              rdm.userId,
+              rdm.pointsUsed,
+              PointTransactionType.ADMIN_ADJUSTMENT,
+              'REDEMPTION_REFUND',
+              `Points refund for rejected redemption order ${rdm._id}`,
+              undefined,
+              req.user?._id
+            );
+          }
+        }
+        res.status(200).json({ success: true, message: `Redemption order updated to ${status}`, redemption: rdm });
+        return;
+      }
+
       default:
         res.status(400).json({ success: false, message: 'Unknown quick action' });
     }
