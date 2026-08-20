@@ -36,8 +36,8 @@ export const inMemoryStore: InMemoryState = {
 };
 
 export const initInMemoryStore = async () => {
-  const passwordHash = await bcrypt.hash('Admin@Tridrishti2026', 10);
-  const userPasswordHash = await bcrypt.hash('User@123456', 10);
+  const passwordHash = await bcrypt.hash('Admin@123', 10);
+  const userPasswordHash = await bcrypt.hash('User@123', 10);
 
   const superAdmin = {
     _id: 'user_admin_001',
