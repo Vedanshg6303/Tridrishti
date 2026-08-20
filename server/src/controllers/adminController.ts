@@ -16,6 +16,11 @@ export const getAdminMetrics = async (req: AuthenticatedRequest, res: Response):
     const totalUsers = inMemoryStore.users.length;
     const activeUsers = inMemoryStore.users.filter((u) => !u.isSuspended).length;
     const pendingKycCount = inMemoryStore.users.filter((u) => u.kycStatus === 'PENDING').length;
+    
+    const totalPointsIssued = inMemoryStore.users.reduce((acc, u) => acc + (u.lifetimePointsEarned || 0), 0);
+    const totalPointsRedeemed = inMemoryStore.users.reduce((acc, u) => acc + (u.lifetimePointsUsed || 0), 0);
+    const currentPointsLiability = inMemoryStore.users.reduce((acc, u) => acc + (u.pointsBalance || 0), 0);
+    const totalRevenue = inMemoryStore.users.filter(u => u.role !== 'SUPER_ADMIN').length * 100;
 
     res.status(200).json({
       success: true,
@@ -23,14 +28,14 @@ export const getAdminMetrics = async (req: AuthenticatedRequest, res: Response):
         totalUsers,
         activeUsers,
         pendingKycCount,
-        totalRevenue: 1600,
-        totalPointsIssued: 54970,
-        totalPointsRedeemed: 1500,
-        currentPointsLiability: 53470,
-        pendingClaims: inMemoryStore.claims.length,
-        pendingRedemptions: inMemoryStore.redemptions.length,
-        pendingEducationApps: 1,
-        openTickets: 1,
+        totalRevenue,
+        totalPointsIssued,
+        totalPointsRedeemed,
+        currentPointsLiability,
+        pendingClaims: inMemoryStore.claims.filter(c => c.status === 'PENDING').length,
+        pendingRedemptions: inMemoryStore.redemptions.filter(r => r.status === 'PENDING').length,
+        pendingEducationApps: inMemoryStore.claims.filter(c => c.category === 'Education' && c.status === 'PENDING').length,
+        openTickets: inMemoryStore.tickets.filter(t => t.status === 'OPEN').length,
       },
     });
   } catch (error: any) {

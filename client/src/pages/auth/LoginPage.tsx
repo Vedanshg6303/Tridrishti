@@ -82,29 +82,16 @@ export const LoginPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Demo Fast Login Shortcuts */}
-        <div className="p-3.5 rounded-2xl bg-dark-bg/80 border border-brand-500/20 space-y-2">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-brand-400 block text-center">
-            🚀 1-Click Fast Demo Login
-          </span>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => handleDemoLogin('rahul.sharma@example.com', 'User@123')}
-              className="py-2 px-3 rounded-xl bg-brand-600/20 hover:bg-brand-600/30 border border-brand-500/30 text-brand-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
-            >
-              <User className="w-3.5 h-3.5" />
-              <span>Demo Member</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleDemoLogin('admin@tridrishti.com', 'Admin@123')}
-              className="py-2 px-3 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 text-purple-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
-            >
-              <ShieldAlert className="w-3.5 h-3.5" />
-              <span>Super Admin</span>
-            </button>
-          </div>
+        {/* Quick Admin Access */}
+        <div className="p-3.5 rounded-2xl bg-dark-bg/80 border border-purple-500/20 text-center">
+          <button
+            type="button"
+            onClick={() => handleDemoLogin('admin@tridrishti.com', 'Admin@123')}
+            className="w-full py-2.5 px-3 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 text-purple-300 text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
+          >
+            <ShieldAlert className="w-4 h-4" />
+            <span>1-Click Super Admin Login</span>
+          </button>
         </div>
 
         {/* Standard Email & Password Form */}

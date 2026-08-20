@@ -37,8 +37,8 @@ export const inMemoryStore: InMemoryState = {
 
 export const initInMemoryStore = async () => {
   const passwordHash = await bcrypt.hash('Admin@123', 10);
-  const userPasswordHash = await bcrypt.hash('User@123', 10);
 
+  // Single Master Super Admin Account
   const superAdmin = {
     _id: 'user_admin_001',
     name: 'Tridrishti Platform Admin',
@@ -49,8 +49,8 @@ export const initInMemoryStore = async () => {
     referralCode: 'TRI-ADMIN-001',
     level: 5,
     levelName: 'DIAMOND',
-    pointsBalance: 50000,
-    lifetimePointsEarned: 50000,
+    pointsBalance: 0,
+    lifetimePointsEarned: 0,
     lifetimePointsUsed: 0,
     kycStatus: KYCStatus.VERIFIED,
     isActive: true,
@@ -58,110 +58,18 @@ export const initInMemoryStore = async () => {
     createdAt: new Date().toISOString(),
   };
 
-  const vedansh = {
-    _id: 'user_vedansh_002',
-    name: 'Vedansh Gupta',
-    email: 'vedansh@tridrishti.com',
-    passwordHash: userPasswordHash,
-    phone: '+91 9988776655',
-    role: UserRole.USER,
-    referralCode: 'TRI-VDNSH-82K',
-    referredBy: 'TRI-ADMIN-001',
-    referrerUserId: superAdmin._id,
-    level: 3,
-    levelName: 'GROW',
-    pointsBalance: 1250,
-    pendingPoints: 100,
-    lifetimePointsEarned: 2450,
-    lifetimePointsUsed: 1200,
-    kycStatus: KYCStatus.VERIFIED,
-    kycDocuments: {
-      panNumber: 'ABCDE1234F',
-      aadhaarLast4: '8892',
-      documentUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=400',
-      verifiedAt: new Date().toISOString(),
-    },
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
-    address: {
-      line1: 'Flat 402, Lotus Grand Residency',
-      city: 'Noida',
-      state: 'Uttar Pradesh',
-      pincode: '201309',
-      country: 'India',
-    },
-    isActive: true,
-    isSuspended: false,
-    createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
-  };
+  // Fresh zero-state users (Only the platform administrator)
+  inMemoryStore.users = [superAdmin];
+  inMemoryStore.nodes = [];
+  inMemoryStore.ledger = [];
+  inMemoryStore.claims = [];
+  inMemoryStore.redemptions = [];
+  inMemoryStore.tickets = [];
+  inMemoryStore.contactMessages = [];
+  inMemoryStore.auditLogs = [];
+  inMemoryStore.otps = [];
 
-  const rahul = {
-    _id: 'user_rahul_003',
-    name: 'Rahul Sharma',
-    email: 'rahul.sharma@example.com',
-    passwordHash: userPasswordHash,
-    phone: '+91 9811223344',
-    role: UserRole.USER,
-    referralCode: 'TRI-RAHUL-101',
-    referredBy: 'TRI-VDNSH-82K',
-    referrerUserId: vedansh._id,
-    level: 2,
-    levelName: 'CONNECT',
-    pointsBalance: 650,
-    lifetimePointsEarned: 950,
-    lifetimePointsUsed: 300,
-    kycStatus: KYCStatus.VERIFIED,
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-    isActive: true,
-    isSuspended: false,
-    createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-  };
-
-  const priya = {
-    _id: 'user_priya_004',
-    name: 'Priya Patel',
-    email: 'priya.patel@example.com',
-    passwordHash: userPasswordHash,
-    phone: '+91 9722334455',
-    role: UserRole.USER,
-    referralCode: 'TRI-PRIYA-202',
-    referredBy: 'TRI-VDNSH-82K',
-    referrerUserId: vedansh._id,
-    level: 2,
-    levelName: 'CONNECT',
-    pointsBalance: 820,
-    lifetimePointsEarned: 820,
-    lifetimePointsUsed: 0,
-    kycStatus: KYCStatus.PENDING,
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
-    isActive: true,
-    isSuspended: false,
-    createdAt: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString(),
-  };
-
-  const amit = {
-    _id: 'user_amit_005',
-    name: 'Amit Verma',
-    email: 'amit.verma@example.com',
-    passwordHash: userPasswordHash,
-    phone: '+91 9633445566',
-    role: UserRole.USER,
-    referralCode: 'TRI-AMIT-303',
-    referredBy: 'TRI-VDNSH-82K',
-    referrerUserId: vedansh._id,
-    level: 1,
-    levelName: 'STARTER',
-    pointsBalance: 150,
-    lifetimePointsEarned: 150,
-    lifetimePointsUsed: 0,
-    kycStatus: KYCStatus.NOT_SUBMITTED,
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
-    isActive: true,
-    isSuspended: false,
-    createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
-  };
-
-  inMemoryStore.users = [superAdmin, vedansh, rahul, priya, amit];
-
+  // Official Membership Plans Catalog
   inMemoryStore.plans = [
     {
       _id: 'plan_entry_100',
@@ -225,6 +133,7 @@ export const initInMemoryStore = async () => {
     },
   ];
 
+  // Official Reward Store Marketplace Catalog
   inMemoryStore.products = [
     {
       _id: 'prod_hoodie',
@@ -232,7 +141,7 @@ export const initInMemoryStore = async () => {
       description: 'Premium heavy-blend fleece hoodie made from 100% sustainably sourced organic cotton with custom Tridrishti embroidered crest.',
       category: 'Fashion',
       pointsRequired: 400,
-      stock: 50,
+      stock: 100,
       imageUrl: 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=600',
       isActive: true,
       isFeatured: true,
@@ -244,7 +153,7 @@ export const initInMemoryStore = async () => {
       description: '1.85-inch HD Display, SpO2 & 24/7 Heart Rate Monitor, 100+ Sports Modes, IP68 Water Resistant with 7-day battery life.',
       category: 'Electronics',
       pointsRequired: 950,
-      stock: 25,
+      stock: 50,
       imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600',
       isActive: true,
       isFeatured: true,
@@ -256,7 +165,7 @@ export const initInMemoryStore = async () => {
       description: 'Double-walled stainless steel thermal flask with integrated touch LED temperature sensor display.',
       category: 'Lifestyle',
       pointsRequired: 250,
-      stock: 120,
+      stock: 200,
       imageUrl: 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=600',
       isActive: true,
       isFeatured: false,
@@ -268,7 +177,7 @@ export const initInMemoryStore = async () => {
       description: 'Signature bass, ENx noise-cancellation mic, Beast mode low latency, and up to 42 hours total playtime.',
       category: 'Electronics',
       pointsRequired: 800,
-      stock: 40,
+      stock: 75,
       imageUrl: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600',
       isActive: true,
       isFeatured: true,
@@ -280,7 +189,7 @@ export const initInMemoryStore = async () => {
       description: 'Water-repellent ballistic nylon backpack with padded 15.6" laptop compartment and USB charging port.',
       category: 'Accessories',
       pointsRequired: 650,
-      stock: 30,
+      stock: 60,
       imageUrl: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600',
       isActive: true,
       isFeatured: false,
@@ -292,7 +201,7 @@ export const initInMemoryStore = async () => {
       description: 'Curated library including Atomic Habits, Psychology of Money, Deep Work, Mindset, and Start with Why.',
       category: 'Books',
       pointsRequired: 350,
-      stock: 60,
+      stock: 100,
       imageUrl: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600',
       isActive: true,
       isFeatured: false,
@@ -304,7 +213,7 @@ export const initInMemoryStore = async () => {
       description: 'Over 80 essential emergency medical supplies, digital thermometer, pulse oximeter, and certified emergency manual.',
       category: 'Healthcare',
       pointsRequired: 500,
-      stock: 45,
+      stock: 80,
       imageUrl: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600',
       isActive: true,
       isFeatured: false,
@@ -312,6 +221,7 @@ export const initInMemoryStore = async () => {
     },
   ];
 
+  // Welfare Benefits Catalog
   inMemoryStore.benefits = [
     {
       _id: 'ben_telehealth',
@@ -354,6 +264,7 @@ export const initInMemoryStore = async () => {
     },
   ];
 
+  // Dynamic Business Rules
   inMemoryStore.rules = [
     {
       _id: 'rule_entry_fee',
@@ -420,77 +331,5 @@ export const initInMemoryStore = async () => {
     },
   ];
 
-  inMemoryStore.ledger = [
-    {
-      _id: 'tx_001',
-      transactionId: 'TXN-TRI-MEMBER-001',
-      userId: vedansh._id,
-      type: PointTransactionType.MEMBERSHIP_PURCHASE,
-      amount: 600,
-      balanceAfter: 600,
-      source: 'MEMBERSHIP_PURCHASE',
-      description: 'Eligible points for TRI PRO Membership purchase',
-      status: PointStatus.COMPLETED,
-      createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-    },
-    {
-      _id: 'tx_002',
-      transactionId: 'TXN-TRI-ACT-002',
-      userId: vedansh._id,
-      type: PointTransactionType.QUALIFYING_ACTIVITY,
-      amount: 350,
-      balanceAfter: 950,
-      source: 'QUALIFYING_ACTIVITY',
-      description: 'Participation in Social Impact Education Drive',
-      status: PointStatus.COMPLETED,
-      createdAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
-    },
-    {
-      _id: 'tx_003',
-      transactionId: 'TXN-TRI-REF-003',
-      userId: vedansh._id,
-      type: PointTransactionType.REFERRAL_ACTIVITY_REWARD,
-      amount: 1500,
-      balanceAfter: 2450,
-      source: 'REFERRAL_ACTIVITY',
-      description: 'Community network engagement activity bonus',
-      status: PointStatus.COMPLETED,
-      createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-    },
-    {
-      _id: 'tx_004',
-      transactionId: 'TXN-TRI-RDM-004',
-      userId: vedansh._id,
-      type: PointTransactionType.REWARD_REDEMPTION,
-      amount: -1200,
-      balanceAfter: 1250,
-      source: 'REWARD_STORE_REDEMPTION',
-      description: 'Redemption for Noise Pulse Smartwatch & Hoodie',
-      status: PointStatus.COMPLETED,
-      createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    },
-  ];
-
-  inMemoryStore.contactMessages = [
-    {
-      _id: 'msg_001',
-      name: 'Rohan Deshmukh',
-      email: 'rohan.d@gmail.com',
-      subject: 'Inquiry regarding TRI PRO Membership benefits',
-      message: 'Hello Tridrishti team, I am interested in joining under the PRO membership. Could you clarify how the health checkup diagnostics voucher home sample collection works in Pune?',
-      status: 'UNREAD',
-      createdAt: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
-    },
-    {
-      _id: 'msg_002',
-      name: 'Dr. Ananya Sharma',
-      email: 'dr.ananya.s@healthcareplus.in',
-      subject: 'Healthcare Partner Integration Proposal',
-      message: 'Greetings. We run an NABL accredited laboratory network with 45 branches across North India and would like to explore offering priority diagnostics vouchers for your community members.',
-      status: 'READ',
-      createdAt: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
-    },
-  ];
-
-  console.log('[InMemoryStore] Initialized with demo users, products, rules, ledger, and contact inquiries.');
+  console.log('[InMemoryStore] ✅ Clean pristine state initialized: 0 dummy users, 0 dummy claims, 0 dummy orders.');
 };
