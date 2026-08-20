@@ -24,7 +24,7 @@ export const ReferralsPage: React.FC = () => {
 
   if (!user) return null;
 
-  const referralUrl = `https://tridrishti.com/join/${user.referralCode}`;
+  const referralUrl = typeof window !== 'undefined' ? `${window.location.origin}/join/${user.referralCode}` : `https://tridrishti.com/join/${user.referralCode}`;
 
   useEffect(() => {
     const fetchReferralAnalytics = async () => {

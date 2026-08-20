@@ -49,7 +49,7 @@ export const DashboardOverviewPage: React.FC = () => {
   }, []);
 
   const copyReferralLink = () => {
-    const link = `https://tridrishti.com/join/${user.referralCode}`;
+    const link = typeof window !== 'undefined' ? `${window.location.origin}/join/${user.referralCode}` : `https://tridrishti.com/join/${user.referralCode}`;
     navigator.clipboard.writeText(link);
     showToast('Referral link copied! Share to earn 10 TRI Coins per referral.', 'success');
   };
