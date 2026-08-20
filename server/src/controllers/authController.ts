@@ -9,6 +9,7 @@ import { AuthenticatedRequest } from '../middleware/authJwt';
 import { KYCStatus, UserRole, AuditAction } from '../constants';
 import { AuditService } from '../services/AuditService';
 import { EmailService } from '../services/EmailService';
+import { SmsService } from '../services/SmsService';
 import { inMemoryStore } from '../config/memoryStore';
 
 const generateTokens = (userId: string, role: string) => {
@@ -338,20 +339,28 @@ export const sendOTP = async (req: Request, res: Response): Promise<void> => {
 
     console.log(`[AUTH OTP Engine] Generated OTP for ${cleanTarget} (${type}): ${otp}`);
 
-    // Dispatch real email if it's an email address
+    // Dispatch real email or real SMS depending on target format
     let emailDelivered = false;
+    let smsDelivered = false;
+
     if (cleanTarget.includes('@')) {
       emailDelivered = await EmailService.sendOtpEmail(cleanTarget, otp, type);
+    } else {
+      smsDelivered = await SmsService.sendOtpSms(cleanTarget, otp, type);
     }
+
+    const channelName = cleanTarget.includes('@') ? 'Email' : 'Mobile SMS';
 
     res.status(200).json({
       success: true,
-      message: emailDelivered
-        ? `A 6-digit verification code has been sent directly to ${cleanTarget}`
+      message: emailDelivered || smsDelivered
+        ? `A 6-digit verification code has been sent via ${channelName} to ${cleanTarget}`
         : `A 6-digit verification code has been generated for ${cleanTarget}`,
       target: cleanTarget,
       type,
+      channel: channelName,
       emailDelivered,
+      smsDelivered,
       // For immediate ease of local testing & developer experience:
       devOtpPreview: otp,
     });
