@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useLanguage } from '../../context/LanguageContext';
 import {
   Sparkles,
   ShieldCheck,
@@ -17,6 +18,8 @@ import {
   TrendingUp,
   Play,
   RotateCcw,
+  Compass,
+  Bot,
 } from 'lucide-react';
 import { formatCurrency, formatPoints } from '../../utils/formatters';
 import { CinematicEyeIntro } from '../../components/common/CinematicEyeIntro';
@@ -24,62 +27,111 @@ import { InteractiveEyeVisualizer } from '../../components/common/InteractiveEye
 
 export const HomePage: React.FC = () => {
   const [showIntro, setShowIntro] = useState(true);
+  const { language, t, startTour, openAiBot } = useLanguage();
 
   const stats = [
-    { label: 'One-Time Entry Activation', value: '₹100', icon: Zap, color: 'text-brand-400' },
-    { label: 'Referral Bonus', value: '10 TRI Coins', icon: Sparkles, color: 'text-amber-400' },
-    { label: 'Career Progression', value: '5 Tier Levels', icon: Shield, color: 'text-cyan-400' },
-    { label: 'Community Welfare', value: '100% Free Shipping', icon: Gift, color: 'text-emerald-400' },
+    {
+      label: language === 'hi' ? 'एकमुश्त ऑनबोर्डिंग' : 'One-Time Entry Activation',
+      value: '₹100',
+      icon: Zap,
+      color: 'text-brand-400',
+    },
+    {
+      label: language === 'hi' ? 'रेफरल रिवॉर्ड' : 'Referral Reward',
+      value: '10 TRI Points',
+      icon: Sparkles,
+      color: 'text-amber-400',
+    },
+    {
+      label: language === 'hi' ? 'करियर स्तर' : 'Career Progression',
+      value: '5 Tier Levels',
+      icon: Shield,
+      color: 'text-cyan-400',
+    },
+    {
+      label: language === 'hi' ? 'कल्याणकारी सुविधाएं' : 'Welfare & Healthcare',
+      value: '100% Guaranteed',
+      icon: Gift,
+      color: 'text-emerald-400',
+    },
   ];
 
   const highlights = [
     {
-      title: 'Promotional TRI Points',
-      desc: 'Earn platform points on eligible product purchases and community activities. Redeem for premium goodies.',
+      id: 'rewards-section',
+      title: language === 'hi' ? '10 TRI पॉइंट्स प्रति रेफरल' : '10 TRI Points per Referral',
+      desc:
+        language === 'hi'
+          ? 'अपने रेफरल लिंक से जुड़े हर सदस्य पर 10 पॉइंट्स तुरंत अर्जित करें। पॉइंट्स से उपहार और वाउचर रिडीम करें।'
+          : 'Earn guaranteed 10 TRI points for each registered referral member. Points unlock tier perks and luxury goodies.',
       icon: Sparkles,
       color: 'from-amber-500/20 to-orange-500/10',
       border: 'border-amber-500/30',
       textColor: 'text-amber-400',
+      link: '/rewards',
     },
     {
-      title: 'Community Network Graph',
-      desc: 'Explore your referral connections through an interactive, zoomable SVG topology canvas with transparent attribution.',
-      icon: Users,
+      id: 'tiers-section',
+      title: language === 'hi' ? '5 स्तरीय रैंक व विशेषाधिकार' : '5-Tier Leadership Levels',
+      desc:
+        language === 'hi'
+          ? 'कांस्य से डायमंड तक स्तर बढ़ाएं और उच्चतर आपातकालीन सहायता, मर्चेंडाइज और विशेष अधिकार अनलॉक करें।'
+          : 'Progress from Bronze to Diamond. Higher ranks unlock comprehensive micro-insurance and exclusive welfare coverage.',
+      icon: Shield,
       color: 'from-brand-500/20 to-blue-500/10',
       border: 'border-brand-500/30',
       textColor: 'text-brand-400',
+      link: '/levels',
     },
     {
-      title: 'Healthcare Assistance',
-      desc: '24x7 Telehealth physician passes, complimentary full-body NABL diagnostics, and medical guidance.',
+      id: 'welfare-section',
+      title: language === 'hi' ? 'स्वास्थ्य सुरक्षा व माइक्रो-इंश्योरेंस' : 'Healthcare & Micro-Insurance',
+      desc:
+        language === 'hi'
+          ? '24x7 टेली-परामर्श, चिकित्सा प्रतिपूर्ति वाउचर और आपातकालीन स्वास्थ्य सहायता सीधे सदस्य पोर्टल से।'
+          : 'Accidental health reimbursement, emergency medical vouchers, and 24x7 verified doctor telehealth consultations.',
       icon: HeartPulse,
       color: 'from-rose-500/20 to-pink-500/10',
       border: 'border-rose-500/30',
       textColor: 'text-rose-400',
+      link: '/insurance',
     },
     {
-      title: 'Education Support Grants',
-      desc: 'Financial scholarships and academic guidance for members and family pursuing higher studies.',
+      id: 'education-section',
+      title: language === 'hi' ? 'शिक्षा सहायता व छात्रवृत्ति' : 'Education Support Grants',
+      desc:
+        language === 'hi'
+          ? 'बच्चों की पढ़ाई के लिए छात्रवृत्ति, प्रतियोगी परीक्षाओं के लिए सहायता और डिजिटल उपकरण अनुदान।'
+          : 'Direct academic scholarships, school kit distribution, and digital learning hardware assistance for members children.',
       icon: GraduationCap,
       color: 'from-blue-500/20 to-indigo-500/10',
       border: 'border-blue-500/30',
       textColor: 'text-blue-400',
+      link: '/education',
     },
     {
-      title: 'Goodies & Physical Store',
-      desc: 'Redeem points for organic cotton hoodies, smartwatches, wireless earbuds, and wellness kits with free shipping.',
+      title: language === 'hi' ? 'विशेष उपहार व भौतिक स्टोर' : 'Goodies & Physical Store',
+      desc:
+        language === 'hi'
+          ? 'पॉइंट्स से ब्रांडेड हुडीज, स्मार्टवॉच, ईयरबड्स और वेलनेस किट्स मुफ्त होम डिलीवरी के साथ प्राप्त करें।'
+          : 'Redeem points for premium hoodies, smartwatches, wireless earbuds, and wellness kits with free door delivery.',
       icon: Gift,
       color: 'from-purple-500/20 to-violet-500/10',
       border: 'border-purple-500/30',
       textColor: 'text-purple-400',
+      link: '/goodies',
     },
     {
-      title: 'Social Impact Fund',
-      desc: 'Participate in transparent community charity drives, rural school book distribution, and medical camps.',
+      title: language === 'hi' ? 'सामाजिक कल्याण कोष' : 'Social Impact & Charity Fund',
+      desc:
+        language === 'hi'
+          ? 'पारदर्शी सामुदायिक सेवा, ग्रामीण शिक्षा अभियान और आपातकालीन आपदा राहत में सक्रिय योगदान।'
+          : 'Transparent community service drives, rural school support, tree plantations, and emergency relief programs.',
       icon: HeartHandshake,
       color: 'from-emerald-500/20 to-teal-500/10',
       border: 'border-emerald-500/30',
       textColor: 'text-emerald-400',
+      link: '/social-impact',
     },
   ];
 
@@ -104,45 +156,54 @@ export const HomePage: React.FC = () => {
               {/* Badge */}
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-300 text-xs font-semibold backdrop-blur-md shadow-lg shadow-brand-500/10">
                 <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
-                <span>The Modern Community, Rewards & Benefits Ecosystem</span>
+                <span>{t('hero.badge')}</span>
               </div>
 
               {/* Headline */}
               <h1 className="text-4xl sm:text-6xl lg:text-7xl font-display font-black text-white tracking-tight leading-[1.1]">
-                Connect.{' '}
-                <span className="bg-gradient-to-r from-brand-400 via-cyan-300 to-blue-400 bg-clip-text text-transparent drop-shadow-[0_0_25px_rgba(14,165,233,0.4)]">
-                  Grow.
-                </span>{' '}
-                Empower.
+                {t('hero.titlePrefix')}{' '}
+                <span className="bg-gradient-to-r from-brand-400 via-cyan-300 to-amber-400 bg-clip-text text-transparent drop-shadow-[0_0_25px_rgba(14,165,233,0.4)]">
+                  {t('hero.titleHighlight')}
+                </span>
               </h1>
 
               {/* Subtitle */}
               <p className="text-sm sm:text-base text-slate-300 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-normal">
-                TRIDRISHTI unites members in a compliant community platform. Earn promotional{' '}
-                <strong className="text-amber-400 font-semibold">TRI Points</strong>, climb levels, redeem tangible goodies, and unlock curated healthcare passes, education grants, and social impact programs.
+                {t('hero.subtitle')}
               </p>
 
-              {/* CTAs */}
-              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
+              {/* CTAs with Tour and Drishti AI */}
+              <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center lg:justify-start gap-3 pt-2">
                 <Link
                   to="/register"
-                  className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-brand-600 via-cyan-600 to-blue-600 hover:from-brand-500 hover:to-cyan-500 text-white font-bold text-sm shadow-xl shadow-brand-600/30 transition-all flex items-center justify-center gap-2.5 group"
+                  className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-gradient-to-r from-brand-600 via-indigo-600 to-cyan-600 hover:from-brand-500 hover:to-indigo-500 text-white font-bold text-sm shadow-xl shadow-brand-600/30 transition-all flex items-center justify-center gap-2 group active:scale-95"
                 >
-                  <span>Join the Ecosystem</span>
+                  <span>{t('hero.ctaJoin')}</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
 
-                <Link
-                  to="/how-it-works"
-                  className="w-full sm:w-auto px-7 py-4 rounded-2xl bg-dark-card hover:bg-dark-cardHover border border-dark-border text-slate-200 hover:text-white font-semibold text-sm transition-all flex items-center justify-center gap-2"
+                {/* Drive Through Website Tour Button */}
+                <button
+                  onClick={startTour}
+                  className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-brand-500/15 hover:bg-brand-500/25 border-2 border-brand-500/40 hover:border-brand-500 text-brand-300 hover:text-white font-bold text-sm shadow-lg shadow-brand-500/20 transition-all flex items-center justify-center gap-2 active:scale-95"
                 >
-                  <span>Explore How It Works</span>
-                </Link>
+                  <Compass className="w-4 h-4 text-brand-400 animate-spin" style={{ animationDuration: '8s' }} />
+                  <span>{t('hero.ctaTour')}</span>
+                </button>
+
+                {/* Ask Drishti AI Button */}
+                <button
+                  onClick={openAiBot}
+                  className="w-full sm:w-auto px-5 py-3.5 rounded-2xl bg-dark-card hover:bg-dark-cardHover border border-dark-border text-slate-200 hover:text-white font-semibold text-sm transition-all flex items-center justify-center gap-2 active:scale-95"
+                >
+                  <Bot className="w-4 h-4 text-amber-400" />
+                  <span>{t('hero.ctaAskAI')}</span>
+                </button>
 
                 {/* Replay Eye Intro Button */}
                 <button
                   onClick={() => setShowIntro(true)}
-                  className="p-4 rounded-2xl bg-dark-card/60 hover:bg-dark-card border border-dark-border text-slate-400 hover:text-cyan-400 transition-all"
+                  className="p-3.5 rounded-2xl bg-dark-card/60 hover:bg-dark-card border border-dark-border text-slate-400 hover:text-cyan-400 transition-all hidden lg:block"
                   title="Replay Eye Intro Animation"
                 >
                   <RotateCcw className="w-4 h-4" />
@@ -156,9 +217,9 @@ export const HomePage: React.FC = () => {
                   <span>100% Compliant Direct Ecosystem</span>
                 </div>
                 <span>•</span>
-                <span>No Guaranteed ROI</span>
+                <span>₹100 Direct Model</span>
                 <span>•</span>
-                <span>Real Utility & Rewards</span>
+                <span>Transparent Points</span>
               </div>
             </div>
 
@@ -171,7 +232,7 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* Live Statistics Counter Bar */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section id="membership-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 p-6 sm:p-8 rounded-3xl bg-dark-card/70 backdrop-blur-xl border border-dark-border shadow-2xl">
           {stats.map((s, idx) => {
             const Icon = s.icon;
@@ -194,13 +255,15 @@ export const HomePage: React.FC = () => {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         <div className="text-center space-y-3 max-w-3xl mx-auto">
           <span className="text-xs font-mono font-bold uppercase tracking-widest text-cyan-400">
-            Ecosystem Pillars
+            {language === 'hi' ? 'इकोसिस्टम के मुख्य स्तंभ' : 'Ecosystem Pillars'}
           </span>
           <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-white">
-            Everything You Need in One Unified Hub
+            {language === 'hi' ? 'सब कुछ एक ही सशक्त मंच पर' : 'Everything You Need in One Unified Hub'}
           </h2>
           <p className="text-xs sm:text-sm text-slate-400">
-            Explore reward tiers, interactive community downlines, healthcare benefits, and transparent social initiatives.
+            {language === 'hi'
+              ? 'रिवॉर्ड टियर्स, कम्युनिटी नेटवर्क, स्वास्थ्य लाभ और पारदर्शी सामाजिक पहलों का अन्वेषण करें।'
+              : 'Explore reward tiers, interactive community downlines, healthcare benefits, and transparent social initiatives.'}
           </p>
         </div>
 
@@ -210,6 +273,7 @@ export const HomePage: React.FC = () => {
             return (
               <div
                 key={idx}
+                id={h.id}
                 className={`p-8 rounded-3xl bg-gradient-to-b ${h.color} to-dark-card border ${h.border} backdrop-blur-xl flex flex-col justify-between space-y-6 hover:scale-[1.02] transition-all duration-300 shadow-xl group`}
               >
                 <div className="space-y-4">
@@ -224,10 +288,10 @@ export const HomePage: React.FC = () => {
 
                 <div className="pt-2 border-t border-dark-border/40">
                   <Link
-                    to="/how-it-works"
+                    to={h.link || '/how-it-works'}
                     className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-300 hover:text-cyan-300 transition-colors"
                   >
-                    <span>Learn more</span>
+                    <span>{language === 'hi' ? 'अधिक जानें' : 'Learn more'}</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>

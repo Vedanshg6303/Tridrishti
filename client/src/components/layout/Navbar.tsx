@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
+import { LanguageSwitcher } from '../common/LanguageSwitcher';
 import {
   Menu,
   X,
@@ -15,11 +17,14 @@ import {
   User,
   LayoutDashboard,
   ShieldAlert,
+  Compass,
+  Bot,
 } from 'lucide-react';
 import { formatPoints } from '../../utils/formatters';
 
 export const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
+  const { language, t, startTour, openAiBot } = useLanguage();
   const isAuthenticated = !!user;
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -66,38 +71,38 @@ export const Navbar: React.FC = () => {
           <nav className="hidden lg:flex items-center gap-1 xl:gap-2">
             <Link
               to="/about"
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+              className={`px-2.5 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                 location.pathname === '/about' ? 'text-brand-400 bg-brand-500/10' : 'text-slate-300 hover:text-white hover:bg-dark-card'
               }`}
             >
-              About
+              {t('nav.about')}
             </Link>
 
             <Link
               to="/how-it-works"
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+              className={`px-2.5 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                 location.pathname === '/how-it-works' ? 'text-brand-400 bg-brand-500/10' : 'text-slate-300 hover:text-white hover:bg-dark-card'
               }`}
             >
-              How It Works
+              {t('nav.howItWorks')}
             </Link>
 
             <Link
               to="/memberships"
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+              className={`px-2.5 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                 location.pathname === '/memberships' ? 'text-brand-400 bg-brand-500/10' : 'text-slate-300 hover:text-white hover:bg-dark-card'
               }`}
             >
-              Memberships
+              {t('nav.memberships')}
             </Link>
 
             <Link
               to="/rewards"
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+              className={`px-2.5 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                 location.pathname === '/rewards' ? 'text-brand-400 bg-brand-500/10' : 'text-slate-300 hover:text-white hover:bg-dark-card'
               }`}
             >
-              TRI Points
+              {t('nav.rewards')}
             </Link>
 
             {/* Ecosystem Dropdown */}
@@ -106,9 +111,9 @@ export const Navbar: React.FC = () => {
                 type="button"
                 onClick={() => setEcosystemOpen(!ecosystemOpen)}
                 onMouseEnter={() => setEcosystemOpen(true)}
-                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-slate-300 hover:text-white rounded-lg hover:bg-dark-card transition-colors"
+                className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-slate-300 hover:text-white rounded-lg hover:bg-dark-card transition-colors"
               >
-                <span>Ecosystem</span>
+                <span>{t('nav.ecosystem')}</span>
                 <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
               </button>
 
@@ -123,7 +128,7 @@ export const Navbar: React.FC = () => {
                   >
                     <Sparkles className="w-4 h-4 text-amber-400" />
                     <div>
-                      <div className="text-xs font-semibold text-white">Levels & Perks</div>
+                      <div className="text-xs font-semibold text-white">{t('nav.levels')}</div>
                       <div className="text-[10px] text-slate-400">STARTER, CONNECT, GROW & more</div>
                     </div>
                   </Link>
@@ -134,7 +139,7 @@ export const Navbar: React.FC = () => {
                   >
                     <Shield className="w-4 h-4 text-brand-400" />
                     <div>
-                      <div className="text-xs font-semibold text-white">Benefits Center</div>
+                      <div className="text-xs font-semibold text-white">{t('nav.benefits')}</div>
                       <div className="text-[10px] text-slate-400">Curated member utilities</div>
                     </div>
                   </Link>
@@ -145,7 +150,7 @@ export const Navbar: React.FC = () => {
                   >
                     <Gift className="w-4 h-4 text-purple-400" />
                     <div>
-                      <div className="text-xs font-semibold text-white">Goodies & Rewards</div>
+                      <div className="text-xs font-semibold text-white">{t('nav.goodies')}</div>
                       <div className="text-[10px] text-slate-400">Physical merchandise & store</div>
                     </div>
                   </Link>
@@ -156,7 +161,7 @@ export const Navbar: React.FC = () => {
                   >
                     <HeartHandshake className="w-4 h-4 text-emerald-400" />
                     <div>
-                      <div className="text-xs font-semibold text-white">Social Impact</div>
+                      <div className="text-xs font-semibold text-white">{t('nav.socialImpact')}</div>
                       <div className="text-[10px] text-slate-400">Community service & drives</div>
                     </div>
                   </Link>
@@ -165,48 +170,43 @@ export const Navbar: React.FC = () => {
                     to="/education"
                     className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-dark-bg transition-colors"
                   >
-                    <GraduationCap className="w-4 h-4 text-blue-400" />
+                    <GraduationCap className="w-4 h-4 text-indigo-400" />
                     <div>
-                      <div className="text-xs font-semibold text-white">Education Support</div>
-                      <div className="text-[10px] text-slate-400">Academic grant assistance</div>
+                      <div className="text-xs font-semibold text-white">{t('nav.education')}</div>
+                      <div className="text-[10px] text-slate-400">Scholarships & grant applications</div>
                     </div>
                   </Link>
 
                   <Link
-                    to="/healthcare"
+                    to="/insurance"
                     className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-dark-bg transition-colors"
                   >
                     <HeartPulse className="w-4 h-4 text-rose-400" />
                     <div>
-                      <div className="text-xs font-semibold text-white">Healthcare Assistance</div>
-                      <div className="text-[10px] text-slate-400">Tele-consultations & vouchers</div>
+                      <div className="text-xs font-semibold text-white">{t('nav.insurance')}</div>
+                      <div className="text-[10px] text-slate-400">Micro-insurance & claim assistance</div>
                     </div>
                   </Link>
                 </div>
               )}
             </div>
 
-            <Link
-              to="/faq"
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                location.pathname === '/faq' ? 'text-brand-400 bg-brand-500/10' : 'text-slate-300 hover:text-white hover:bg-dark-card'
-              }`}
+            {/* Quick Tour Button */}
+            <button
+              onClick={startTour}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-brand-500/10 hover:bg-brand-500/20 border border-brand-500/30 text-brand-300 text-xs font-semibold transition-all hover:scale-105"
+              title="Drive Through Website (Tour)"
             >
-              FAQ
-            </Link>
-
-            <Link
-              to="/contact"
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                location.pathname === '/contact' ? 'text-brand-400 bg-brand-500/10' : 'text-slate-300 hover:text-white hover:bg-dark-card'
-              }`}
-            >
-              Contact
-            </Link>
+              <Compass className="w-3.5 h-3.5 text-brand-400 animate-spin" style={{ animationDuration: '8s' }} />
+              <span>{t('nav.startTour')}</span>
+            </button>
           </nav>
 
           {/* Right User Actions */}
-          <div className="hidden lg:flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-2 xl:gap-3">
+            {/* Language Switcher */}
+            <LanguageSwitcher />
+
             {isAuthenticated && user ? (
               <div className="flex items-center gap-3">
                 {/* Points Pill */}
@@ -233,7 +233,7 @@ export const Navbar: React.FC = () => {
                     className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold shadow-lg shadow-brand-600/25 transition-all"
                   >
                     <LayoutDashboard className="w-3.5 h-3.5" />
-                    <span>Dashboard</span>
+                    <span>{t('nav.dashboard')}</span>
                   </Link>
                 )}
 
@@ -250,22 +250,23 @@ export const Navbar: React.FC = () => {
               <div className="flex items-center gap-2">
                 <Link
                   to="/login"
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-dark-card transition-colors"
+                  className="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-dark-card transition-colors"
                 >
-                  Sign In
+                  {t('nav.login')}
                 </Link>
                 <Link
                   to="/register"
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-brand-600 to-cyan-600 hover:from-brand-500 hover:to-cyan-500 text-white text-xs font-semibold shadow-lg shadow-brand-500/25 transition-all"
+                  className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-brand-500/25 transition-all"
                 >
-                  Join Tridrishti
+                  {t('nav.register')}
                 </Link>
               </div>
             )}
           </div>
 
-          {/* Mobile Menu Toggle */}
+          {/* Mobile Menu Toggle & Language */}
           <div className="lg:hidden flex items-center gap-2">
+            <LanguageSwitcher compact />
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -279,46 +280,58 @@ export const Navbar: React.FC = () => {
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-x-0 top-[60px] bg-dark-bg/98 backdrop-blur-2xl border-b border-dark-border shadow-2xl p-6 space-y-4 animate-in slide-in-from-top-4">
-          <nav className="flex flex-col space-y-2 text-sm font-medium">
+        <div className="lg:hidden fixed inset-x-0 top-[60px] bg-dark-bg/98 backdrop-blur-2xl border-b border-dark-border shadow-2xl p-6 space-y-4 animate-in slide-in-from-top-4 max-h-[85vh] overflow-y-auto">
+          {/* Quick Guided Tour in Mobile */}
+          <button
+            onClick={() => {
+              setMobileMenuOpen(false);
+              startTour();
+            }}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 text-white font-bold text-xs shadow-lg shadow-brand-500/25"
+          >
+            <Compass className="w-4 h-4 animate-spin" style={{ animationDuration: '8s' }} />
+            <span>{t('nav.startTour')}</span>
+          </button>
+
+          <nav className="flex flex-col space-y-1.5 text-sm font-medium">
             <Link to="/about" className="px-3 py-2 rounded-xl text-slate-300 hover:bg-dark-card">
-              About
+              {t('nav.about')}
             </Link>
             <Link to="/how-it-works" className="px-3 py-2 rounded-xl text-slate-300 hover:bg-dark-card">
-              How It Works
+              {t('nav.howItWorks')}
             </Link>
             <Link to="/memberships" className="px-3 py-2 rounded-xl text-slate-300 hover:bg-dark-card">
-              Memberships
+              {t('nav.memberships')}
             </Link>
             <Link to="/rewards" className="px-3 py-2 rounded-xl text-slate-300 hover:bg-dark-card">
-              TRI Points & Rewards
+              {t('nav.rewards')}
             </Link>
             <Link to="/levels" className="px-3 py-2 rounded-xl text-slate-300 hover:bg-dark-card">
-              Levels & Perks
+              {t('nav.levels')}
             </Link>
             <Link to="/benefits" className="px-3 py-2 rounded-xl text-slate-300 hover:bg-dark-card">
-              Benefits Center
+              {t('nav.benefits')}
             </Link>
             <Link to="/goodies" className="px-3 py-2 rounded-xl text-slate-300 hover:bg-dark-card">
-              Goodies Store
+              {t('nav.goodies')}
             </Link>
             <Link to="/social-impact" className="px-3 py-2 rounded-xl text-slate-300 hover:bg-dark-card">
-              Social Impact
+              {t('nav.socialImpact')}
             </Link>
             <Link to="/education" className="px-3 py-2 rounded-xl text-slate-300 hover:bg-dark-card">
-              Education Support
+              {t('nav.education')}
             </Link>
             <Link to="/healthcare" className="px-3 py-2 rounded-xl text-slate-300 hover:bg-dark-card">
-              Healthcare Assistance
+              {t('nav.healthcare')}
             </Link>
             <Link to="/insurance" className="px-3 py-2 rounded-xl text-slate-300 hover:bg-dark-card">
-              Insurance Protection
+              {t('nav.insurance')}
             </Link>
             <Link to="/faq" className="px-3 py-2 rounded-xl text-slate-300 hover:bg-dark-card">
-              FAQ
+              {t('nav.faq')}
             </Link>
             <Link to="/contact" className="px-3 py-2 rounded-xl text-slate-300 hover:bg-dark-card">
-              Contact
+              {t('nav.contact')}
             </Link>
           </nav>
 
@@ -329,7 +342,7 @@ export const Navbar: React.FC = () => {
                   to="/dashboard"
                   className="block w-full py-2.5 text-center rounded-xl bg-brand-600 text-white font-semibold text-xs shadow-lg shadow-brand-600/30"
                 >
-                  Go to Dashboard
+                  {t('nav.dashboard')}
                 </Link>
                 <button
                   type="button"
@@ -345,13 +358,13 @@ export const Navbar: React.FC = () => {
                   to="/login"
                   className="py-2.5 text-center rounded-xl bg-dark-card border border-dark-border text-white text-xs font-semibold"
                 >
-                  Sign In
+                  {t('nav.login')}
                 </Link>
                 <Link
                   to="/register"
                   className="py-2.5 text-center rounded-xl bg-brand-600 text-white text-xs font-semibold shadow-lg shadow-brand-600/25"
                 >
-                  Join Now
+                  {t('nav.register')}
                 </Link>
               </div>
             )}

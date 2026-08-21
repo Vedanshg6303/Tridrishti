@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { LanguageSwitcher } from '../common/LanguageSwitcher';
+import { GuidedTour } from '../common/GuidedTour';
+import { DrishtiAIBot } from '../common/DrishtiAIBot';
 import {
   LayoutDashboard,
   User,
@@ -183,6 +186,9 @@ export const DashboardLayout: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Bilingual Switcher */}
+            <LanguageSwitcher compact />
+
             {/* Quick Public Site Link */}
             <Link
               to="/"
@@ -217,6 +223,8 @@ export const DashboardLayout: React.FC = () => {
           </div>
         </main>
       </div>
+      <GuidedTour />
+      <DrishtiAIBot />
     </div>
   );
 };
