@@ -44,7 +44,7 @@ export const HomePage: React.FC = () => {
     },
     {
       label: language === 'hi' ? 'करियर स्तर' : 'Career Progression',
-      value: '5 Tier Levels',
+      value: language === 'hi' ? '10 करियर स्तर' : '10 Tier Levels',
       icon: Shield,
       color: 'text-cyan-400',
     },
@@ -72,11 +72,11 @@ export const HomePage: React.FC = () => {
     },
     {
       id: 'tiers-section',
-      title: language === 'hi' ? '5 स्तरीय रैंक व विशेषाधिकार' : '5-Tier Leadership Levels',
+      title: language === 'hi' ? '10-स्तरीय रैंक व विशेषाधिकार' : '10-Tier Leadership Levels',
       desc:
         language === 'hi'
-          ? 'कांस्य से डायमंड तक स्तर बढ़ाएं और उच्चतर आपातकालीन सहायता, मर्चेंडाइज और विशेष अधिकार अनलॉक करें।'
-          : 'Progress from Bronze to Diamond. Higher ranks unlock comprehensive micro-insurance and exclusive welfare coverage.',
+          ? '10 सदस्यों से लेकर 100,000 सदस्यों तक 10 स्तर अनलॉक करें और उच्चतर स्वास्थ्य सुरक्षा, छात्रवृत्ति और एक्सक्लूसिव उपहार पाएं।'
+          : 'Progress through 10 milestone tiers from 10 members to 100,000 members. Higher ranks unlock comprehensive micro-insurance, education grants, and luxury awards.',
       icon: Shield,
       color: 'from-brand-500/20 to-blue-500/10',
       border: 'border-brand-500/30',

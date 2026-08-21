@@ -95,12 +95,17 @@ TRIDRISHTI_PLATFORM_OFFICIAL/
    - Activates their personal referral code and credits 10 welcome TRI coins.
 2. **10 TRI Coins per Referral**:
    - When user $A$ refers user $B$, upon user $B$ paying ₹100, user $A$ is credited **10 TRI Coins** (`REFERRAL_ACTIVITY_REWARD`).
-3. **5-Tier Level Matrix**:
-   - **Level 1 (STARTER)**: 0 – 49 coins | Referral tools, Welcome goodie pack.
-   - **Level 2 (CONNECT)**: 50 – 199 coins | 24x7 Doctor Telehealth pass, 5% store discount.
-   - **Level 3 (GROW)**: 200 – 499 coins | Free Annual Full-Body NABL Diagnostic pass, Education grants.
-   - **Level 4 (LEAD)**: 500 – 999 coins | Comprehensive College Tuition Scholarships, Priority claims triage.
-   - **Level 5 (DIAMOND)**: 1,000+ coins | VIP Concierge Desk, Sponsor & lead local social impact drives.
+3. **10-Tier Career Progression Matrix**:
+   - **Level 1 (STARTER)**: 10 Members (100 pts) | Referral tools, Tree visualizer, Welcome kit.
+   - **Level 2 (CONNECT)**: 50 Members (500 pts) | 24x7 Doctor Telehealth pass, 5% store discount.
+   - **Level 3 (GROW)**: 100 Members (1,000 pts) | Free Annual Full-Body NABL Diagnostic pass, Goodies delivery.
+   - **Level 4 (LEAD)**: 250 Members (2,500 pts) | Emergency Medical Reimbursement, Vocational training grants.
+   - **Level 5 (ADVANCE)**: 500 Members (5,000 pts) | Digital Learning Device (Tablet) Scholarship, Micro-Insurance.
+   - **Level 6 (EXECUTIVE)**: 1,000 Members (10,000 pts) | Laptop Grant Eligibility, Family Healthcare Protection Fund.
+   - **Level 7 (DIRECTOR)**: 5,000 Members (50,000 pts) | Sponsor Regional Medical & Relief Camps, Full Tuition Grants.
+   - **Level 8 (AMBASSADOR)**: 10,000 Members (100,000 pts) | National Convention Keynote Guest, Comprehensive Family Shield.
+   - **Level 9 (PRESIDENTIAL)**: 50,000 Members (500,000 pts) | State-Wide Social Impact Leadership, Owner Council Seat.
+   - **Level 10 (ROYAL CROWN)**: 100,000 Members (1,000,000 pts) | 👑 National Welfare Trustee, Lifetime Apex Protection.
 
 ---
 

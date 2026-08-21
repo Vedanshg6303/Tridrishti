@@ -193,9 +193,17 @@ export const DrishtiAIBot: React.FC = () => {
     ) {
       replyText =
         language === 'hi'
-          ? '🌟 **TRI पॉइंट्स कमाई मॉडल:**\n\n- आप अपने रेफरल कोड से जितने भी सदस्यों को जोड़ते हैं, प्रति सदस्य **10 TRI पॉइंट्स** तुरंत आपके वॉलेट में क्रेडिट होते हैं।\n- पॉइंट्स से आपकी रैंक (Bronze ➔ Diamond) बढ़ती है और आप एक्सक्लूसिव उपहार व वाउचर रिडीम कर सकते हैं!'
-          : '🌟 **TRI Points Reward Model:**\n\n- For every direct member who joins using your referral link, you receive **10 TRI Points** immediately in your wallet.\n- Accumulating points elevates your tier (Bronze ➔ Diamond) and qualifies you for luxury goodies and welfare claims!';
+          ? '🌟 **10-स्तरीय करियर व TRI रिवॉर्ड मॉडल:**\n\n- प्रत्येक ₹100 सदस्य को जोड़ने पर **10 TRI पॉइंट्स** तुरंत मिलते हैं।\n\n🏆 **10 करियर स्तर:**\n• **लेवल 1**: 10 सदस्य (100 पॉइंट्स)\n• **लेवल 2**: 50 सदस्य (500 पॉइंट्स)\n• **लेवल 3**: 100 सदस्य (1,000 पॉइंट्स)\n• **लेवल 4**: 250 सदस्य (2,500 पॉइंट्स)\n• **लेवल 5**: 500 सदस्य (5,000 पॉइंट्स)\n• **लेवल 6**: 1,000 सदस्य (10,000 पॉइंट्स)\n• **लेवल 7**: 5,000 सदस्य (50,000 पॉइंट्स)\n• **लेवल 8**: 10,000 सदस्य (100,000 पॉइंट्स)\n• **लेवल 9**: 50,000 सदस्य (500,000 पॉइंट्स)\n• **लेवल 10 (रॉयल क्राउन)**: 100,000 सदस्य (1,000,000 पॉइंट्स)!'
+          : '🌟 **10-Tier Milestone & Rewards Model:**\n\n- Earn **10 TRI Points** for every member who joins with ₹100 onboarding.\n\n🏆 **10 Career Levels:**\n• **Level 1**: 10 Members (100 pts)\n• **Level 2**: 50 Members (500 pts)\n• **Level 3**: 100 Members (1,000 pts)\n• **Level 4**: 250 Members (2,500 pts)\n• **Level 5**: 500 Members (5,000 pts)\n• **Level 6**: 1,000 Members (10,000 pts)\n• **Level 7**: 5,000 Members (50,000 pts)\n• **Level 8**: 10,000 Members (100,000 pts)\n• **Level 9**: 50,000 Members (500,000 pts)\n• **Level 10 (Royal Crown)**: 100,000 Members (1,000,000 pts)!';
       actions = [
+        {
+          label: language === 'hi' ? 'सभी 10 स्तर देखें' : 'View All 10 Levels',
+          action: () => {
+            closeAiBot();
+            navigate('/levels');
+          },
+          icon: Award,
+        },
         {
           label: language === 'hi' ? 'TRI पॉइंट्स विवरण देखें' : 'View TRI Points Ledger',
           action: () => {
@@ -203,14 +211,6 @@ export const DrishtiAIBot: React.FC = () => {
             navigate('/rewards');
           },
           icon: Sparkles,
-        },
-        {
-          label: language === 'hi' ? 'रैंक और माइलस्टोन्स' : 'View Tier Milestones',
-          action: () => {
-            closeAiBot();
-            navigate('/levels');
-          },
-          icon: Award,
         },
       ];
     } else if (

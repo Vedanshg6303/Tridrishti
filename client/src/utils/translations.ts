@@ -84,10 +84,10 @@ export const translations: Translations = {
     en: 'Share your referral code with friends and family. For every registered member, 10 TRI Points are credited directly to your live wallet.',
     hi: 'अपना रेफरल कोड दोस्तों और परिवार के साथ साझा करें। प्रत्येक पंजीकृत सदस्य पर आपके वॉलेट में 10 TRI पॉइंट्स तुरंत जमा होते हैं।',
   },
-  'tour.tiers.title': { en: 'Step 3: Tier Unlocks & Levels', hi: 'चरण 3: स्तर (Tiers) और रैंक की प्रगति' },
+  'tour.tiers.title': { en: 'Step 3: 10 Tier Unlocks & Milestones', hi: 'चरण 3: 10-स्तरीय रैंक व माइलस्टोन्स' },
   'tour.tiers.desc': {
-    en: 'Progress from Bronze to Silver, Gold, Platinum, and Diamond. Each tier unlocks higher welfare coverage, merchandise, and executive perks.',
-    hi: 'कांस्य से रजत, स्वर्ण, प्लेटिनम और डायमंड स्तर तक बढ़ें। प्रत्येक स्तर उच्चतर कल्याणकारी सुरक्षा, उपहार और विशेष अधिकार प्रदान करता है।',
+    en: 'Progress across 10 structured tiers (Level 1 at 10 members up to Level 10 at 100,000 members). Each level unlocks higher healthcare coverage, diagnostics, scholarships, and supreme welfare honors.',
+    hi: '10 स्तरों में आगे बढ़ें (लेवल 1: 10 सदस्य से लेकर लेवल 10: 100,000 सदस्य तक)। प्रत्येक स्तर उच्चतर स्वास्थ्य सुरक्षा, छात्रवृत्ति, लैपटॉप अनुदान और एक्सक्लूसिव सम्मान प्रदान करता है।',
   },
   'tour.welfare.title': { en: 'Step 4: Healthcare & Micro-Insurance', hi: 'चरण 4: स्वास्थ्य एवं माइक्रो-इंश्योरेंस' },
   'tour.welfare.desc': {

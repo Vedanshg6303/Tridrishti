@@ -31,15 +31,20 @@ TRIDRISHTI is a modern loyalty, welfare, community, and perks ecosystem. The pla
 
 ---
 
-## 3. Tier Progression & Benefits Matrix
+## 3. 10-Tier Progression & Benefits Matrix
 
-| Level | Name | Coin Threshold | Referrals Needed | Level Perks & Welfare Access |
+| Level | Tier Name | ₹100 Members Added | TRI Points Earned | Level Perks & Welfare Access |
 | :--- | :--- | :--- | :--- | :--- |
-| **Level 1** | **STARTER** | **0 – 49 coins** | 0 (₹100 Entry) | Referral Link, Welcome E-Handbook, Basic Healthcare Guidance |
-| **Level 2** | **CONNECT** | **50 – 199 coins** | 5+ Referrals | **24x7 Doctor Telehealth Consult Pass**, 5% Marketplace Discount, Priority Support |
-| **Level 3** | **GROW** | **200 – 499 coins** | 20+ Referrals | **Free Annual Full-Body NABL Diagnostic Pass** (60+ tests), Tuition Grants Eligibility |
-| **Level 4** | **LEAD** | **500 – 999 coins** | 50+ Referrals | **Comprehensive College Tuition Scholarships**, Priority Medical Claims Review |
-| **Level 5** | **DIAMOND** | **1,000+ coins** | 100+ Referrals | **VIP Concierge Desk**, Sponsor & Lead Regional Social Welfare Drives |
+| **Level 1** | **STARTER** | **10 Members** | **100 pts** | Referral Link, Interactive Tree Visualizer, Basic Healthcare Support |
+| **Level 2** | **CONNECT** | **50 Members** | **500 pts** | **24x7 Doctor Telehealth Video Consult Pass**, 5% Marketplace Discount |
+| **Level 3** | **GROW** | **100 Members** | **1,000 pts** | **Free Annual Full-Body NABL Diagnostic Pass** (60+ tests), Goodies Delivery |
+| **Level 4** | **LEAD** | **250 Members** | **2,500 pts** | **Emergency Medical Reimbursement**, Skill & Vocational Sponsorship |
+| **Level 5** | **ADVANCE** | **500 Members** | **5,000 pts** | **Digital Learning Device (Tablet) Scholarship**, Micro-Insurance Support |
+| **Level 6** | **EXECUTIVE** | **1,000 Members** | **10,000 pts** | **Laptop Grant Eligibility**, Family Healthcare Protection Fund, VIP Support |
+| **Level 7** | **DIRECTOR** | **5,000 Members** | **50,000 pts** | **Sponsor Regional Medical & Food Relief Drives**, Full Tuition Study Grants |
+| **Level 8** | **AMBASSADOR** | **10,000 Members** | **100,000 pts** | **National Convention Keynote Guest**, Comprehensive Family Welfare Shield |
+| **Level 9** | **PRESIDENTIAL** | **50,000 Members** | **500,000 pts** | **State-Wide Social Impact Project Direction**, Owner Advisory Council Seat |
+| **Level 10** | **ROYAL CROWN** | **100,000 Members** | **1,000,000 pts** | **👑 Supreme National Welfare Trustee**, Lifetime Apex Healthcare & Education |
 
 ---
 

@@ -81,14 +81,14 @@ const TOUR_STEPS: TourStep[] = [
     targetSelector: '#tiers-section',
     icon: Award,
     title: {
-      en: '🏆 Step 3: Tier Levels (Bronze to Diamond)',
-      hi: '🏆 चरण 3: स्तर और रैंक (कांस्य से डायमंड तक)',
+      en: '🏆 Step 3: 10 Tier Levels (10 to 100,000 Members)',
+      hi: '🏆 चरण 3: 10 करियर स्तर (10 से 100,000 सदस्य)',
     },
     description: {
-      en: 'As your community grows, advance through Bronze, Silver, Gold, Platinum, and Diamond tiers. Higher tiers unlock higher welfare coverage and leadership perks.',
-      hi: 'जैसे-जैसे आपका समुदाय बढ़ता है, कांस्य, रजत, स्वर्ण, प्लेटिनम और डायमंड स्तरों तक पहुंचें। उच्च स्तर अधिक कल्याणकारी सुरक्षा प्रदान करते हैं।',
+      en: 'Climb 10 milestone tiers by welcoming ₹100 members (10, 50, 100, 250, 500, 1k, 5k, 10k, 50k, 100k). Each tier unlocks higher healthcare claims, laptops, and supreme rewards.',
+      hi: '₹100 सदस्यों को जोड़कर 10 स्तरों तक पहुंचें (10, 50, 100, 250, 500, 1k, 5k, 10k, 50k, 100k)। प्रत्येक स्तर पर पाएं उच्चतर स्वास्थ्य सुरक्षा, छात्रवृत्ति व एक्सक्लूसिव सम्मान।',
     },
-    actionLabel: { en: 'View Tier Milestones', hi: 'रैंक और माइलस्टोन्स देखें' },
+    actionLabel: { en: 'View All 10 Levels', hi: 'सभी 10 स्तर देखें' },
     actionUrl: '/levels',
   },
   {
