@@ -82,6 +82,18 @@ export const RegisterPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Verified Sponsor Code Highlight */}
+        {referralCode && (
+          <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl flex items-center gap-3 animate-in fade-in duration-300">
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+            <div className="text-xs text-slate-200">
+              <span className="font-bold text-emerald-400">Sponsor Verified:</span> You are registering under code <strong className="font-mono text-white bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-500/40">{referralCode}</strong>
+            </div>
+          </div>
+        )}
+
         {/* Direct Form */}
         <form onSubmit={handleSubmit} className="space-y-3.5">
           <div className="space-y-1">

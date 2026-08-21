@@ -17,37 +17,72 @@ export const PLATFORM_LEVELS: LevelConfig[] = [
   {
     level: 1,
     name: 'STARTER',
-    minPoints: 0,
+    minPoints: 100, // 10 members * 10 pts
     referralMultiplier: 1.0,
     perks: ['Community Network Access', 'Referral Link (Earn 10 TRI Coins per referral)', 'Welcome Goodie Pack'],
   },
   {
     level: 2,
     name: 'CONNECT',
-    minPoints: 50,
+    minPoints: 500, // 50 members * 10 pts
     referralMultiplier: 1.2,
     perks: ['24x7 Doctor Telehealth Consult Pass', '5% Goodies Store Discount', 'Priority Support'],
   },
   {
     level: 3,
     name: 'GROW',
-    minPoints: 200,
+    minPoints: 1000, // 100 members * 10 pts
     referralMultiplier: 1.5,
     perks: ['Free Annual NABL Diagnostic Test Pass', 'Higher Education Grant Eligibility', 'Physical Merchandise Unlocked'],
   },
   {
     level: 4,
     name: 'LEAD',
-    minPoints: 500,
-    referralMultiplier: 2.0,
-    perks: ['Comprehensive Tuition Scholarships', 'Priority Medical Claims Reimbursement', 'Partner Insurance Guidance'],
+    minPoints: 2500, // 250 members * 10 pts
+    referralMultiplier: 1.8,
+    perks: ['Emergency Medical Reimbursement', 'Skill Development & Vocational Training', 'Dedicated Relationship Manager'],
   },
   {
     level: 5,
-    name: 'DIAMOND',
-    minPoints: 1000,
+    name: 'ADVANCE',
+    minPoints: 5000, // 500 members * 10 pts
+    referralMultiplier: 2.0,
+    perks: ['Digital Learning Device (Tablet) Scholarship', 'Micro-Insurance Premium Coverage Support', 'Regional Recognition Awards'],
+  },
+  {
+    level: 6,
+    name: 'EXECUTIVE',
+    minPoints: 10000, // 1,000 members * 10 pts
+    referralMultiplier: 2.2,
+    perks: ['Laptop & Higher Education Hardware Grant Eligibility', 'Family Healthcare Protection Fund', 'VIP Customer Concierge Helpdesk'],
+  },
+  {
+    level: 7,
+    name: 'DIRECTOR',
+    minPoints: 50000, // 5,000 members * 10 pts
     referralMultiplier: 2.5,
-    perks: ['Executive Concierge Helpdesk', 'Sponsor & Lead Local Social Drives', 'VIP Maximum Store Redemptions'],
+    perks: ['Sponsor Regional Tridrishti Medical & Food Relief Camps', 'Full Tuition Grant & Higher Education Study Fund', 'Executive Leadership Board Seat'],
+  },
+  {
+    level: 8,
+    name: 'AMBASSADOR',
+    minPoints: 100000, // 10,000 members * 10 pts
+    referralMultiplier: 2.8,
+    perks: ['National Convention Keynote Guest Honor & Trophy', 'Comprehensive Family Health & Welfare Shield', 'Monthly Leadership Recognition Grants'],
+  },
+  {
+    level: 9,
+    name: 'PRESIDENTIAL',
+    minPoints: 500000, // 50,000 members * 10 pts
+    referralMultiplier: 3.0,
+    perks: ['State-Wide Social Impact Project Direction Rights', 'Direct Owner Council & Platform Policy Advisory Seat', 'Supreme Luxury Lifestyle & Welfare Redemptions'],
+  },
+  {
+    level: 10,
+    name: 'ROYAL CROWN',
+    minPoints: 1000000, // 100,000 members * 10 pts
+    referralMultiplier: 3.5,
+    perks: ['👑 National Welfare Trustee & Supreme Tridrishti Hall of Fame', 'Lifetime Comprehensive Healthcare & Education Security', 'Joint Leadership of Annual Multi-Crore Social Impact Fund'],
   },
 ];
 

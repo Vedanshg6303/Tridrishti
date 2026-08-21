@@ -77,10 +77,11 @@ export const ReferralsPage: React.FC = () => {
         </p>
       </div>
 
-      {/* Referral Code & Quick Share Box */}
+      {/* Referral Code, QR & Quick Share Box */}
       <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-brand-950/70 via-dark-card to-dark-card border border-brand-500/30 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-          <div className="space-y-2">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+          {/* Left Info */}
+          <div className="md:col-span-7 space-y-3">
             <span className="text-xs font-mono uppercase font-bold text-brand-300">Your Unique Referral Code</span>
             <div className="flex items-center gap-3">
               <div className="px-5 py-2.5 rounded-2xl bg-dark-bg border border-brand-500/40 text-xl font-mono font-extrabold text-white tracking-wider">
@@ -88,43 +89,57 @@ export const ReferralsPage: React.FC = () => {
               </div>
               <button
                 onClick={handleCopy}
-                className="p-3 rounded-2xl bg-brand-600 hover:bg-brand-500 text-white shadow-lg shadow-brand-600/30 transition-all"
+                className="p-3 rounded-2xl bg-brand-600 hover:bg-brand-500 text-white shadow-lg shadow-brand-600/30 transition-all flex items-center gap-1.5 text-xs font-bold"
                 title="Copy Link"
               >
-                <Copy className="w-5 h-5" />
+                <Copy className="w-4 h-4" />
+                <span>Copy Link</span>
               </button>
             </div>
             <p className="text-xs text-slate-400 pt-1">
-              Direct Link: <span className="font-mono text-slate-200">{referralUrl}</span>
+              Direct Referral Link: <span className="font-mono text-cyan-300 select-all">{referralUrl}</span>
             </p>
+
+            {/* Social Share Buttons */}
+            <div className="space-y-2 pt-2">
+              <span className="text-xs font-semibold text-slate-300 block">Instant 1-Click Share to Friends:</span>
+              <div className="flex flex-wrap gap-2.5">
+                <button
+                  onClick={shareOnWhatsApp}
+                  className="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/25 transition-all"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span>Share on WhatsApp</span>
+                </button>
+                <button
+                  onClick={shareOnTelegram}
+                  className="py-2.5 px-4 rounded-xl bg-sky-600/20 hover:bg-sky-600/30 border border-sky-500/40 text-sky-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                >
+                  <Send className="w-4 h-4" />
+                  <span>Telegram</span>
+                </button>
+                <button
+                  onClick={shareOnX}
+                  className="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                >
+                  <Twitter className="w-4 h-4" />
+                  <span>X (Twitter)</span>
+                </button>
+              </div>
+            </div>
           </div>
 
-          {/* Social Share Buttons */}
-          <div className="space-y-2">
-            <span className="text-xs font-semibold text-slate-300 block">Instant 1-Click Share:</span>
-            <div className="grid grid-cols-3 gap-3">
-              <button
-                onClick={shareOnWhatsApp}
-                className="py-2.5 px-3 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
-              >
-                <MessageSquare className="w-4 h-4" />
-                <span>WhatsApp</span>
-              </button>
-              <button
-                onClick={shareOnTelegram}
-                className="py-2.5 px-3 rounded-xl bg-sky-600/20 hover:bg-sky-600/30 border border-sky-500/30 text-sky-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
-              >
-                <Send className="w-4 h-4" />
-                <span>Telegram</span>
-              </button>
-              <button
-                onClick={shareOnX}
-                className="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
-              >
-                <Twitter className="w-4 h-4" />
-                <span>X / Twitter</span>
-              </button>
+          {/* Right QR Code Generator */}
+          <div className="md:col-span-5 flex flex-col items-center justify-center p-4 bg-dark-bg/80 border border-dark-border rounded-2xl text-center space-y-2">
+            <span className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">Scan with Phone Camera</span>
+            <div className="p-2 bg-white rounded-xl shadow-lg">
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(referralUrl)}`}
+                alt="Referral QR Code"
+                className="w-32 h-32 object-contain"
+              />
             </div>
+            <p className="text-[10px] text-slate-400">Scan to open registration with code pre-filled</p>
           </div>
         </div>
       </div>
